@@ -1,0 +1,19 @@
+
+#startup 
+mysqld_safe --user=mysql &
+
+# verify .my.cnf amd database.properties values are what they should be
+
+# if new database:
+#mysqladmin -u root password NEWPASSWORD
+# replace NEWPASSWORD with 1827 for root
+
+#1827 is the default password
+
+# enter mysql instace with ./.my.cnf file
+mysql --defaults-file=./.my.cnf -u root -p
+
+#once the server is up and running 
+#CREATE DATABASE adar_database;
+#USE adar_database;
+#CREATE TABLE waypoints (id INTEGER, longe VARCHAR(256), lat VARCHAR(256),adjID VARCHAR(256), enterTime TIMESTAMP);
