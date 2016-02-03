@@ -8,7 +8,7 @@
 #include <sys/socket.h>
  
 #define MAXRCVLEN 500
-#define PORTNUM 2300
+#define PORTNUM 3112
 #define IP_ADDR "128.10.12.141"
 
 
