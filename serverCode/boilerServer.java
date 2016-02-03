@@ -117,7 +117,7 @@ class ThreadedHandler implements Runnable
             Statement q2 = conn.createStatement();
             
             ResultSet r1 = q1.executeQuery("SELECT COUNT(id) FROM waypoints");
-            ResultSet r2 = q2.executeQuery( "SELECT longe lat adjID FROM waypoints");
+            ResultSet r2 = q2.executeQuery( "SELECT longe, lat, adjID FROM waypoints");
             
             //Create a JSON Obj
             JSONObject obj = new JSONObject();
@@ -156,7 +156,8 @@ class ThreadedHandler implements Runnable
              while(r2.next()) {
                 message.append('(');
                 message.append(r2.getString(1));
-                message.append(r2.getString(2));
+                message.append(',');
+		message.append(r2.getString(2));
                 message.append(')');
             }
              
@@ -230,7 +231,7 @@ class ThreadedHandler implements Runnable
             message.append(numPoints);
             
              while(r2.next()) {
-                message.append
+                //message.append
             }
              
              message.append('}');
@@ -587,7 +588,7 @@ class ThreadedHandler implements Runnable
             //perform the requested operation
             if (req.equals("GET-ALL-EVENTS")) {
                 //System.out.println("line = 0");
-                getAllEvents(out);
+                //getAllEvents(out);
             }else if (req.equals("GET-EVENT-INFO")) {
                 //System.out.println("line = 1");
                 getEventInfo(jsonObject, out);
