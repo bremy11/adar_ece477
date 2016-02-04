@@ -157,7 +157,7 @@ class ThreadedHandler implements Runnable
                 message.append('(');
                 message.append(r2.getString(1));
                 message.append(',');
-		message.append(r2.getString(2));
+                message.append(r2.getString(2));
                 message.append(')');
             }
              
@@ -206,37 +206,20 @@ class ThreadedHandler implements Runnable
             
             //send the events to the app
             
-            /*
+            
             while(r2.next()) {
-                obj.put("eventCount",  numEvents);
+                obj.put("numEvents",  numEvents);
                 obj.put("id",    r2.getString(1));
-                obj.put("name",  r2.getString(2));
-                obj.put("longe", r2.getString(3));
-                obj.put("location",  r2.getString(4));
-                obj.put("description",  r2.getString(5));
-                //might have to handle these differently since these are timestamps
-                obj.put("startTime",  r2.getString(6));
-                obj.put("endTime",  r2.getString(7));
-                ////
-                obj.put("numAttendees", r2.getString(8));
-                obj.put("lat", r2.getString(9));
+                obj.put("longe", r2.getString(2));
+                obj.put("lat", r2.getString(3));
+                obj.put("enterTime",  r2.getString(4));
+                
                 //send event
                 System.out.println(obj.toJSONString());
                 //out.println("READING");
                 out.println(obj.toJSONString());
-            }*/
-            
-            StringBuilder message = new StringBuilder();
-            message.append('{');
-            message.append(numPoints);
-            
-             while(r2.next()) {
-                //message.append
             }
-             
-             message.append('}');
-            
-           
+          
             
             r1.close();
             r2.close();
@@ -256,79 +239,7 @@ class ThreadedHandler implements Runnable
         }
     }
     
-    /**
-     *This will return the information for a specific event
-     */
-    void getEventInfo( JSONObject obj, PrintWriter out) {
-        
-        System.out.println();
-        System.out.println(obj.toJSONString());
-        System.out.println();  
-        
-        Connection conn=null;
-        try
-        { 
-            String numEvents = null;
-            conn = getConnection();
-            
-            Statement q1 = conn.createStatement();
-            ResultSet r1 = q1.executeQuery("SELECT COUNT(id) FROM events");
-            while(r1.next()) {
-                numEvents = r1.getString(1);
-            }
-            //System.out.println("numEvents = " + numEvents);
-            r1.close();
-            
-            //get a conncetion
-            
-            //set the prepared statement
-            PreparedStatement pstmt = conn.prepareStatement("SELECT * FROM events WHERE id LIKE ?");
-            //pstmt.setString(1, (Integer) obj.get("id"));
-            
-            //System.out.println("id = " + String.format("%d",obj.get("id")));
-            pstmt.setString(1, String.format("%d",obj.get("id")));
-            //execute the query
-            //System.out.println(pstmt);
-            
-            ResultSet result = pstmt.executeQuery();
-            
-            //create a new JSON object
-            JSONObject newEvent = new JSONObject();
-            
-            //populate & send the JSON object
-            while(result.next()) {
-                newEvent.put("eventCount", numEvents);
-                newEvent.put("id",  result.getString(1) );
-                newEvent.put("name", result.getString(2));
-                newEvent.put("longe", result.getString(3));
-                newEvent.put("location", result.getString(4));
-                newEvent.put("description", result.getString(5));
-                newEvent.put("startTime", result.getString(6));
-                newEvent.put("endTime", result.getString(7));
-                newEvent.put("numAttendees", result.getString(8));
-                newEvent.put("lat", result.getString(9));
-                //send info
-                out.println(newEvent.toJSONString());
-            }
-            //close the result
-            result.close();
-        }
-        catch (Exception e) {
-            System.out.println(e.toString());
-            out.println(e.toString());
-        }
-        finally
-        {
-            try {
-                if (conn!=null) conn.close();
-            }
-            catch (Exception e) {
-            }
-        }
-    }
-    
-    
-    void attendEvent( JSONObject obj, PrintWriter out) {
+    void updateAdj( JSONObject obj, PrintWriter out) {
         
         /*System.out.println();
          System.out.println(obj.toJSONString());
@@ -344,12 +255,13 @@ class ThreadedHandler implements Runnable
             //get a conncetion
             
             //set the prepared statement
-            PreparedStatement pstmt = conn.prepareStatement("UPDATE events SET numAttendees=numAttendees+1 WHERE id LIKE ?");
+            PreparedStatement pstmt = conn.prepareStatement("UPDATE waypoints SET numAttendees=? WHERE id LIKE ?");
             
             //pstmt.setString(1, (Integer) obj.get("id"));
             
             //System.out.println("id = " + String.format("%d",obj.get("id")));
-            pstmt.setString(1, String.format("%d",obj.get("id")));
+            pstmt.setString(1, obj.get("adjID")));
+            pstmt.setString(2, String.format("%d",obj.get("id")));
             //execute the query
             //System.out.println(pstmt);
             
@@ -411,7 +323,7 @@ class ThreadedHandler implements Runnable
     /**
      *This will add a new event to the database
      */
-    void addEvent(JSONObject obj, PrintWriter out) {
+    void addWaypoint(JSONObject obj, PrintWriter out) {
         Connection conn = null;
         
         try{
@@ -426,7 +338,7 @@ class ThreadedHandler implements Runnable
             conn = getConnection();
             
             Statement q1 = conn.createStatement();
-            ResultSet r1 = q1.executeQuery("select max(id)+1 from events");
+            ResultSet r1 = q1.executeQuery("select ifnull(max(id), 1)+1 from events");
             while(r1.next()) {
                 eventId = r1.getString(1);
                 if (eventId==null){ eventId = "1";}
@@ -438,19 +350,16 @@ class ThreadedHandler implements Runnable
             
             
             conn.setAutoCommit(true);
-            String sql = "INSERT INTO events VALUES(?,?,?,?,?,?,?,?,UTC_TIMESTAMP())";
+            String sql = "INSERT INTO events VALUES(?,?,?,?, UTC_TIMESTAMP())";
             PreparedStatement pstmt = conn.prepareStatement(sql);
             
             //get all info from the JSON object 
             pstmt.setString(1,eventId);
-            pstmt.setString(2,(String) obj.get("name"));
-            pstmt.setString(3,(String) obj.get("longe"));
-            pstmt.setString(4,(String) obj.get("location"));
-            pstmt.setString(5,(String) obj.get("description"));
-            pstmt.setString(6,(String) obj.get("startTime"));
-            pstmt.setString(7,(String) obj.get("startTime"));
-            pstmt.setString(8, Integer.toString(1));
-            pstmt.setString(9,(String) obj.get("lat"));
+
+            pstmt.setString(2,(String) obj.get("longe"));
+            pstmt.setString(3,(String) obj.get("lat"));
+            pstmt.setString(4,(String) obj.get("adjID"));
+            
             
             System.out.println(pstmt);
             //update the db
@@ -468,7 +377,7 @@ class ThreadedHandler implements Runnable
         }
     }
     
-    void deleteEvent(JSONObject obj, PrintWriter out) {
+    void deleteWaypoiny(JSONObject obj, PrintWriter out) {
         Connection conn = null;
         
         try{
@@ -486,34 +395,6 @@ class ThreadedHandler implements Runnable
         catch(Exception e) {
             System.out.println(e.toString());
             out.println(e.toString());
-        }
-        finally {
-            try {
-                if (conn!=null) conn.close();
-            }
-            catch (Exception e) {}
-        }
-    }
-    
-    void rmOldEvents() {
-        Connection conn = null;
-        
-        try{
-            //get the connection
-            conn = getConnection();
-            //set the connection to autocommit changes to the db
-            conn.setAutoCommit(true);
-            //set the prepared statement
-            //String sql = "DELETE FROM events WHERE endTime < UTC_TIMESTAMP();";
-            String sql = "DELETE FROM events WHERE endTime < DATE_ADD(UTC_TIMESTAMP(), INTERVAL 5 HOUR);";
-            
-            PreparedStatement pstmt = conn.prepareStatement(sql);
-            //update the db
-            pstmt.executeUpdate();
-        }
-        catch(Exception e) {
-            System.out.println(e.toString());
-            //out.println(e.toString());
         }
         finally {
             try {
