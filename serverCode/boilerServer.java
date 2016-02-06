@@ -23,6 +23,22 @@ import org.json.simple.parser.ParseException;
 
 //ip is for moore11.cs.purdue.edu
 
+
+/*API calls enum
+ * 
+ * 1, get path
+ * 2, database requests current gps waypoint
+ * 3, rover comes on line
+ * 4, database requests delivery
+ * 5, rover at destination
+ * 
+ * Client side protocols
+ * 6, get all waypoints
+ * 7, update waypoint connection, connect
+ * 8, delete waypoint
+ * 9, request delivery
+ * 
+ */
 ///////////////////////////// Mutlithreaded Server /////////////////////////////
 
 public class boilerServer 
@@ -276,11 +292,8 @@ class ThreadedHandler implements Runnable
         }
         finally
         {
-            try {
-                if (conn!=null) conn.close();
-            }
-            catch (Exception e) {
-            }
+            try {if (conn!=null) conn.close();}
+            catch (Exception e) {}
         }
     }
     /**
@@ -319,7 +332,6 @@ class ThreadedHandler implements Runnable
             }
         }
     } 
-    
     /**
      *This will add a new event to the database
      */
@@ -345,21 +357,16 @@ class ThreadedHandler implements Runnable
             }
             //System.out.println("numEvents = " + numEvents);
             r1.close();
-            
-            
-            
-            
+
             conn.setAutoCommit(true);
             String sql = "INSERT INTO events VALUES(?,?,?,?, UTC_TIMESTAMP())";
             PreparedStatement pstmt = conn.prepareStatement(sql);
             
             //get all info from the JSON object 
             pstmt.setString(1,eventId);
-
             pstmt.setString(2,(String) obj.get("longe"));
             pstmt.setString(3,(String) obj.get("lat"));
             pstmt.setString(4,(String) obj.get("adjID"));
-            
             
             System.out.println(pstmt);
             //update the db
@@ -377,7 +384,7 @@ class ThreadedHandler implements Runnable
         }
     }
     
-    void deleteWaypoiny(JSONObject obj, PrintWriter out) {
+    void deleteWaypoint(JSONObject obj, PrintWriter out) {
         Connection conn = null;
         
         try{
@@ -404,14 +411,10 @@ class ThreadedHandler implements Runnable
         }
     }
     
-    //easiest solution, run this command on every request:
-    //DELETE FROM events WHERE endTime < GETDATE();
     void handleRequest( InputStream inStream, OutputStream outStream) 
     {
         
         //rmOldEvents();
-        
-        
         Scanner in = new Scanner(inStream);         
         PrintWriter out = new PrintWriter(outStream, true /* autoFlush */);
         
@@ -421,48 +424,71 @@ class ThreadedHandler implements Runnable
         int requestInt;
         
         if(in.hasNextLine()){
-            //request=in.nextLine();
             requestInt=in.nextInt();
-            //...
         }else {
             return;
         }
+         if(in.hasNextLine()){
+             request=in.nextLine();
+         }
+         
+        /*API calls enum
+         * 
+         * /////1, get path
+         * ////2, database requests current gps waypoint
+         * 3, rover comes on line
+         * ///////4, database requests delivery
+         * 5, rover at destination
+         * 
+         * Client side protocols
+         * 6, get all waypoints
+         * 7, update waypoint connection, connect
+         * 8, delete waypoint
+         * 9, request delivery
+         * 
+         */
+        
+        
         
         if (requestInt == 1){
+            //1, get path
+            
             sendWaypointPath(out);
             return;
+        }else if(requestInt == 2){
+            //2, database requests current gps waypoint
+        }else if(requestInt == 3){
+            //3, rover comes on line
+            
+        }else if(requestInt == 4){
+            //4, database requests delivery
+        }else if(requestInt == 5){
+            //5, rover at destination
+        }else if(requestInt == 6){
+            //6, get all waypoints
+        }else if(requestInt == 7){
+            //7, update waypoint connection, connect
+        }else if(requestInt == 8){
+            //8, delete waypoint
+        }else if(requestInt == 9){
+            //9, request delivery
+        }else {
+            //invalid communication
+            System.out.println("ERROR, INVALID REQUEST");
         }
-        
-        
         Object obj = null;
-        
         JSONParser parser = new JSONParser();
-        
         try{
             obj = parser.parse(request);
         }catch(Exception e)
         {
-            System.out.println("HERE" + e.toString());
-            out.println(e.toString());
+            out.println("ERROR: handleRequest couldn't parse JSON" + e.toString());
         }
         
         //get the command from the JSON object 
         JSONObject jsonObject = (JSONObject) obj;
         System.out.println(jsonObject.toJSONString());
         String req = (String) jsonObject.get("command");
-        
-        /**
-         *The incoming JSON Object has the following fields:
-         * command
-         *  id
-         * name
-         * position
-         * location
-         * description
-         * startTime
-         * endTime
-         * numAttendees
-         */
         
         System.out.println("req = " +req);
         try {
@@ -491,7 +517,6 @@ class ThreadedHandler implements Runnable
         catch (Exception e) {  
             //System.out.println(requestSyntax);
             //out.println(requestSyntax);
-            
             System.out.println(e.toString());
             out.println(e.toString());
         }
