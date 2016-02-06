@@ -1,18 +1,16 @@
 
 
-all: boilerServer cClient
+all: boilerServer cClient serverTestClient
 
 serverTestClient: serverTestClient.java
-./makeTestClient.sh
+	./makeTestClient.sh
 
-cClient: gcc -o cClient testCClient.c
-
-server: boilerServer
-./makeServer.sh
+cClient: testCClient.c
+	gcc -o cClient testCClient.c
 
 boilerServer: boilerServer.java
-javac -cp json-simple-1.1.1.jar boilerServer.java
+	./makeServer.sh
 
 clean: 
-rm client
-
+	rm client
+	rm *.class
