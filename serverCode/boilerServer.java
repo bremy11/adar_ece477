@@ -181,7 +181,7 @@ class ThreadedHandler implements Runnable
             }
            
             while(r2.next()) {
-                obj.put("numEvents",  numEvents);
+                obj.put("numPoints",  numPoints);
                 obj.put("id",    r2.getString(1));
                 obj.put("longe", r2.getString(2));
                 obj.put("lat", r2.getString(3));
@@ -215,7 +215,7 @@ class ThreadedHandler implements Runnable
             //set the prepared statement
             PreparedStatement pstmt = conn.prepareStatement("UPDATE waypoints SET numAttendees=? WHERE id LIKE ?");
             
-            pstmt.setString(1, obj.get("adjID"));
+            pstmt.setString(1, (String) obj.get("adjID")));
             pstmt.setString(2, String.format("%d",obj.get("id")));  
             pstmt.executeUpdate();
             
@@ -240,12 +240,8 @@ class ThreadedHandler implements Runnable
         
         try{
             //get a connection & set it to change the db automatically
-            conn = getConnection();
             
             String eventId = null;
-            conn = getConnection();
-            
-            
             String numEvents = null;
             conn = getConnection();
             
@@ -326,6 +322,8 @@ class ThreadedHandler implements Runnable
             return;
         }     
         
+        JSONObject jsonObject = null;
+        
         if (11<= requestInt && requestInt <=14){
             //if client side request requires json 
             
@@ -343,7 +341,6 @@ class ThreadedHandler implements Runnable
                 //get the command from the JSON object 
                 JSONObject jsonObject = (JSONObject) obj;
                 System.out.println(jsonObject.toJSONString());
-                String req = (String) jsonObject.get("command");
                 
                 System.out.println("req = " +req);
             }
@@ -366,14 +363,14 @@ class ThreadedHandler implements Runnable
                 getAllWaypoints(out);
             }else if(requestInt == 11){
                 //7, update waypoint connection, connect
-                updateAdj(obj,out);
+                updateAdj(jsonObject,out);
             }else if(requestInt == 12){
                 //8, delete waypoint
-                deleteWaypoint(obj, out);
+                deleteWaypoint(jsonObject, out);
             }else if(requestInt == 13){
                 //9, request delivery
             }else if(requestInt == 14){
-                addWaypoint(obj,out);
+                addWaypoint(jsonObject,out);
             }else if(requestInt == 15){
                 getRoverLocation(out);
             }else {
