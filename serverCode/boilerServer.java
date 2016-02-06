@@ -215,7 +215,7 @@ class ThreadedHandler implements Runnable
             //set the prepared statement
             PreparedStatement pstmt = conn.prepareStatement("UPDATE waypoints SET numAttendees=? WHERE id LIKE ?");
             
-            pstmt.setString(1, (String) obj.get("adjID")));
+            pstmt.setString(1, (String) obj.get("adjID"));
             pstmt.setString(2, String.format("%d",obj.get("id")));  
             pstmt.executeUpdate();
             
@@ -339,10 +339,9 @@ class ThreadedHandler implements Runnable
                 }
                 
                 //get the command from the JSON object 
-                JSONObject jsonObject = (JSONObject) obj;
-                System.out.println(jsonObject.toJSONString());
+                jsonObject = (JSONObject) obj;
+                System.out.println(jsonObject.toJSONString());            
                 
-                System.out.println("req = " +req);
             }
         }
 
@@ -372,7 +371,7 @@ class ThreadedHandler implements Runnable
             }else if(requestInt == 14){
                 addWaypoint(jsonObject,out);
             }else if(requestInt == 15){
-                getRoverLocation(out);
+                //getRoverLocation(out);
             }else {
                 //invalid communication
                 System.out.println("ERROR, INVALID REQUEST");
