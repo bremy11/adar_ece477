@@ -26,17 +26,18 @@ import org.json.simple.parser.ParseException;
 
 /*API calls enum
  * 
- * 1, get path
- * 2, database requests current gps waypoint
+ * ///1, get path
+ * 2, update of current gps waypoint location
  * 3, rover comes on line
- * 4, database requests delivery
+ * ///4, database requests delivery
  * 5, rover at destination
  * 
  * Client side protocols
- * 6, get all waypoints
- * 7, update waypoint connection, connect
- * 8, delete waypoint
- * 9, request delivery
+ * 10, get all waypoints
+ * 11, update waypoint connection, connect
+ * 12, delete waypoint
+ * 13, request delivery
+ * 14, add waypoint
  * 
  */
 ///////////////////////////// Mutlithreaded Server /////////////////////////////
@@ -49,19 +50,9 @@ public class boilerServer
     /**
      *Usage is useless now that we will be using JSON objects
      */
-    /*static void printUsage() {
-     System.out.println("In another window type:");
-     System.out.println("telnet sslabXX.cs.purdue.edu " + port);
-     System.out.println("GET-ALL-EVENTS");
-     System.out.println("GET-EVENT-INFO|id");
-     System.out.println("ADD-EVENT");
-     }*/
-    
-    //main
     public static void main(String[] args )
     {  
-        try
-        {  
+        try{  
             //printUsage();
             int i = 1;
             ServerSocket s = new ServerSocket(port);
@@ -116,12 +107,6 @@ class ThreadedHandler implements Runnable
         return DriverManager.getConnection( url, ServerUser, ServerPassword);
     }
     
-    
-    /**
-     *This function will send all of the current events
-     *  that are in the db to populate the app's map.
-     *  Here we use JSON objects to store and send the data
-     */
     void sendWaypointPath(PrintWriter out) {
         
         Connection conn=null;
@@ -143,28 +128,6 @@ class ThreadedHandler implements Runnable
                 numPoints = r1.getString(1);
             }
             
-            //send the events to the app
-            
-            /*
-            while(r2.next()) {
-                obj.put("eventCount",  numEvents);
-                obj.put("id",    r2.getString(1));
-                obj.put("name",  r2.getString(2));
-                obj.put("longe", r2.getString(3));
-                obj.put("location",  r2.getString(4));
-                obj.put("description",  r2.getString(5));
-                //might have to handle these differently since these are timestamps
-                obj.put("startTime",  r2.getString(6));
-                obj.put("endTime",  r2.getString(7));
-                ////
-                obj.put("numAttendees", r2.getString(8));
-                obj.put("lat", r2.getString(9));
-                //send event
-                System.out.println(obj.toJSONString());
-                //out.println("READING");
-                out.println(obj.toJSONString());
-            }*/
-            
             StringBuilder message = new StringBuilder();
             message.append('{');
             message.append(numPoints);
@@ -182,7 +145,6 @@ class ThreadedHandler implements Runnable
            
             r1.close();
             r2.close();
-            
         }
         catch (Exception e) {
             System.out.println(e.toString());
@@ -198,9 +160,7 @@ class ThreadedHandler implements Runnable
         }
     }
     
-    
     void getAllWaypoints(PrintWriter out) {
-        
         Connection conn=null;
         try
         { 
@@ -219,27 +179,17 @@ class ThreadedHandler implements Runnable
             while(r1.next()) {
                 numPoints = r1.getString(1);
             }
-            
-            //send the events to the app
-            
-            
+           
             while(r2.next()) {
                 obj.put("numEvents",  numEvents);
                 obj.put("id",    r2.getString(1));
                 obj.put("longe", r2.getString(2));
                 obj.put("lat", r2.getString(3));
                 obj.put("enterTime",  r2.getString(4));
-                
-                //send event
-                System.out.println(obj.toJSONString());
-                //out.println("READING");
                 out.println(obj.toJSONString());
             }
-          
-            
             r1.close();
             r2.close();
-            
         }
         catch (Exception e) {
             System.out.println(e.toString());
@@ -256,34 +206,18 @@ class ThreadedHandler implements Runnable
     }
     
     void updateAdj( JSONObject obj, PrintWriter out) {
-        
-        /*System.out.println();
-         System.out.println(obj.toJSONString());
-         System.out.println(); */
-        
         Connection conn=null;
         try
         { 
             String numEvents = null;
             conn = getConnection();
             
-            
-            //get a conncetion
-            
             //set the prepared statement
             PreparedStatement pstmt = conn.prepareStatement("UPDATE waypoints SET numAttendees=? WHERE id LIKE ?");
             
-            //pstmt.setString(1, (Integer) obj.get("id"));
-            
-            //System.out.println("id = " + String.format("%d",obj.get("id")));
             pstmt.setString(1, obj.get("adjID")));
-            pstmt.setString(2, String.format("%d",obj.get("id")));
-            //execute the query
-            //System.out.println(pstmt);
-            
+            pstmt.setString(2, String.format("%d",obj.get("id")));  
             pstmt.executeUpdate();
-            
-            //close the result
             
         }
         catch (Exception e) {
@@ -296,42 +230,8 @@ class ThreadedHandler implements Runnable
             catch (Exception e) {}
         }
     }
-    /**
-     *This function will get the total number of events
-     */ 
-    void getCount(PrintWriter out) {
-        Connection conn=null;
-        try
-        { 
-            //get a connection
-            conn = getConnection();
-            //set the prepared statement
-            PreparedStatement pstmt = conn.prepareStatement("SELECT COUNT(id) FROM events");
-            //execute the query
-            ResultSet result = pstmt.executeQuery();
-            
-            //create a new JSON object
-            JSONObject query = new JSONObject();
-            //populate & send the JSON object
-            while(result.next()) {
-                query.put("numEvents", result.getString(1));
-                out.println(query.toJSONString());
-            }
-            result.close();
-        }
-        catch (Exception e) {
-            System.out.println(e.toString());
-            out.println(e.toString());
-        }
-        finally
-        {
-            try {
-                if (conn!=null) conn.close();
-            }
-            catch (Exception e) {
-            }
-        }
-    } 
+
+    
     /**
      *This will add a new event to the database
      */
@@ -366,10 +266,9 @@ class ThreadedHandler implements Runnable
             pstmt.setString(1,eventId);
             pstmt.setString(2,(String) obj.get("longe"));
             pstmt.setString(3,(String) obj.get("lat"));
-            pstmt.setString(4,(String) obj.get("adjID"));
+            pstmt.setString(4,"");
             
             System.out.println(pstmt);
-            //update the db
             pstmt.executeUpdate();
         }
         catch(Exception e) {
@@ -413,8 +312,6 @@ class ThreadedHandler implements Runnable
     
     void handleRequest( InputStream inStream, OutputStream outStream) 
     {
-        
-        //rmOldEvents();
         Scanner in = new Scanner(inStream);         
         PrintWriter out = new PrintWriter(outStream, true /* autoFlush */);
         
@@ -427,97 +324,66 @@ class ThreadedHandler implements Runnable
             requestInt=in.nextInt();
         }else {
             return;
-        }
-         if(in.hasNextLine()){
-             request=in.nextLine();
-         }
-         
-        /*API calls enum
-         * 
-         * /////1, get path
-         * ////2, database requests current gps waypoint
-         * 3, rover comes on line
-         * ///////4, database requests delivery
-         * 5, rover at destination
-         * 
-         * Client side protocols
-         * 6, get all waypoints
-         * 7, update waypoint connection, connect
-         * 8, delete waypoint
-         * 9, request delivery
-         * 
-         */
+        }     
         
-        
-        
-        if (requestInt == 1){
-            //1, get path
+        if (11<= requestInt && requestInt <=14){
+            //if client side request requires json 
             
-            sendWaypointPath(out);
-            return;
-        }else if(requestInt == 2){
-            //2, database requests current gps waypoint
-        }else if(requestInt == 3){
-            //3, rover comes on line
-            
-        }else if(requestInt == 4){
-            //4, database requests delivery
-        }else if(requestInt == 5){
-            //5, rover at destination
-        }else if(requestInt == 6){
-            //6, get all waypoints
-        }else if(requestInt == 7){
-            //7, update waypoint connection, connect
-        }else if(requestInt == 8){
-            //8, delete waypoint
-        }else if(requestInt == 9){
-            //9, request delivery
-        }else {
-            //invalid communication
-            System.out.println("ERROR, INVALID REQUEST");
-        }
-        Object obj = null;
-        JSONParser parser = new JSONParser();
-        try{
-            obj = parser.parse(request);
-        }catch(Exception e)
-        {
-            out.println("ERROR: handleRequest couldn't parse JSON" + e.toString());
-        }
-        
-        //get the command from the JSON object 
-        JSONObject jsonObject = (JSONObject) obj;
-        System.out.println(jsonObject.toJSONString());
-        String req = (String) jsonObject.get("command");
-        
-        System.out.println("req = " +req);
-        try {
-            //perform the requested operation
-            if (req.equals("GET-ALL-EVENTS")) {
-                //System.out.println("line = 0");
-                //getAllEvents(out);
-            }else if (req.equals("GET-EVENT-INFO")) {
-                //System.out.println("line = 1");
-                getEventInfo(jsonObject, out);
-            }else if (req.equals("GET-CNT")) {
-                //System.out.println("line = 2");
-                getCount(out);
-            }else if (req.equals("ADD-EVENT")) {
-                //System.out.println("line = 3");
-                addEvent(jsonObject, out);
-            }else if (req.equals("DEL-EVENT")) {
-                //System.out.println("line = 4");
-                deleteEvent(jsonObject, out);
-            }else if ( req.equals("ATTEND-EVENT")){
-                //System.out.println("line = 5");
-                attendEvent(jsonObject, out);
+            if(in.hasNextLine()){
+                request=in.nextLine();
+                Object obj = null;
+                JSONParser parser = new JSONParser();
+                try{
+                    obj = parser.parse(request);
+                }catch(Exception e)
+                {
+                    out.println("ERROR: handleRequest couldn't parse JSON" + e.toString());
+                }
+                
+                //get the command from the JSON object 
+                JSONObject jsonObject = (JSONObject) obj;
+                System.out.println(jsonObject.toJSONString());
+                String req = (String) jsonObject.get("command");
+                
+                System.out.println("req = " +req);
             }
-            System.out.println();
         }
-        catch (Exception e) {  
+
+        try {
+            if (requestInt == 1){
+                //1, get path
+                sendWaypointPath(out);
+            }else if(requestInt == 2){
+                //2, database requests current gps waypoint
+            }else if(requestInt == 3){
+                //3, rover comes on line
+            }else if(requestInt == 4){
+                //4, database requests delivery
+            }else if(requestInt == 5){
+                //5, rover at destination
+            }else if(requestInt == 10){
+                //6, get all waypoints
+                getAllWaypoints(out);
+            }else if(requestInt == 11){
+                //7, update waypoint connection, connect
+                updateAdj(obj,out);
+            }else if(requestInt == 12){
+                //8, delete waypoint
+                deleteWaypoint(obj, out);
+            }else if(requestInt == 13){
+                //9, request delivery
+            }else if(requestInt == 14){
+                addWaypoint(obj,out);
+            }else if(requestInt == 15){
+                getRoverLocation(out);
+            }else {
+                //invalid communication
+                System.out.println("ERROR, INVALID REQUEST");
+            }
+        }catch (Exception e) {  
             //System.out.println(requestSyntax);
             //out.println(requestSyntax);
-            System.out.println(e.toString());
+            System.out.println("ERROR invoking call in handleRequest"+ e.toString());
             out.println(e.toString());
         }
     }
@@ -531,7 +397,6 @@ class ThreadedHandler implements Runnable
                 InputStream inStream = incoming.getInputStream();
                 OutputStream outStream = incoming.getOutputStream();
                 handleRequest(inStream, outStream);
-                
             }
             catch (IOException e)
             {  
