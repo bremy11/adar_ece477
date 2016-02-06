@@ -215,7 +215,7 @@ class ThreadedHandler implements Runnable
             //set the prepared statement
             PreparedStatement pstmt = conn.prepareStatement("UPDATE waypoints SET numAttendees=? WHERE id LIKE ?");
             
-            pstmt.setString(1, obj.get("adjID")));
+            pstmt.setString(1, obj.get("adjID"));
             pstmt.setString(2, String.format("%d",obj.get("id")));  
             pstmt.executeUpdate();
             
