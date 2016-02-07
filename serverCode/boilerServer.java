@@ -185,7 +185,8 @@ class ThreadedHandler implements Runnable
                 obj.put("id",    r2.getString(1));
                 obj.put("longe", r2.getString(2));
                 obj.put("lat", r2.getString(3));
-                obj.put("enterTime",  r2.getString(4));
+                obj.put("adjID",  r2.getString(4));
+                obj.put("enterTime",  r2.getString(5));
                 out.println(obj.toJSONString());
             }
             r1.close();
@@ -213,7 +214,7 @@ class ThreadedHandler implements Runnable
             conn = getConnection();
             
             //set the prepared statement
-            PreparedStatement pstmt = conn.prepareStatement("UPDATE waypoints SET numAttendees=? WHERE id LIKE ?");
+            PreparedStatement pstmt = conn.prepareStatement("UPDATE waypoints SET adjID=? WHERE id LIKE ?");
             
             pstmt.setString(1, (String) obj.get("adjID"));
             pstmt.setString(2, (String) obj.get("id"));  
