@@ -216,7 +216,7 @@ class ThreadedHandler implements Runnable
             PreparedStatement pstmt = conn.prepareStatement("UPDATE waypoints SET numAttendees=? WHERE id LIKE ?");
             
             pstmt.setString(1, (String) obj.get("adjID"));
-            pstmt.setString(2, String.format("%d",obj.get("id")));  
+            pstmt.setString(2, (String) obj.get("id"));  
             pstmt.executeUpdate();
             
         }
@@ -246,7 +246,7 @@ class ThreadedHandler implements Runnable
             conn = getConnection();
             
             Statement q1 = conn.createStatement();
-            ResultSet r1 = q1.executeQuery("select ifnull(max(id), 1)+1 from events");
+            ResultSet r1 = q1.executeQuery("select ifnull(max(id), 1)+1 from waypoints");
             while(r1.next()) {
                 eventId = r1.getString(1);
                 if (eventId==null){ eventId = "1";}
@@ -255,7 +255,7 @@ class ThreadedHandler implements Runnable
             r1.close();
 
             conn.setAutoCommit(true);
-            String sql = "INSERT INTO events VALUES(?,?,?,?, UTC_TIMESTAMP())";
+            String sql = "INSERT INTO waypoints VALUES(?,?,?,?, UTC_TIMESTAMP())";
             PreparedStatement pstmt = conn.prepareStatement(sql);
             
             //get all info from the JSON object 
@@ -288,7 +288,7 @@ class ThreadedHandler implements Runnable
             //set the connection to autocommit changes to the db
             conn.setAutoCommit(true);
             //set the prepared statement
-            String sql = "DELETE FROM events WHERE id = ?";
+            String sql = "DELETE FROM waypoints WHERE id = ?";
             PreparedStatement pstmt = conn.prepareStatement(sql);
             pstmt.setString(1,(String) obj.get("id"));
             //update the db
