@@ -22,14 +22,14 @@ public class serverTestClient {
             in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             out = new PrintWriter(socket.getOutputStream(), true);
             
-            out.print(14);
+            out.println(14);
             
             JSONObject obj = new JSONObject();
             obj.put("longe", "1.2345");
             obj.put("lat", "1.2345");
             out.println(obj.toJSONString());
             
-            out.println(obj.toJSONString());
+            //out.println(obj.toJSONString());
             //System.out.println(obj.toJSONString());
             
             // Consume the initial welcoming messages from the server
@@ -42,6 +42,7 @@ public class serverTestClient {
             {
                 try
                 {
+                    System.out .println(t);
                     ob = parser.parse(t);
                     jsonObject = (JSONObject) ob;
                     System.out.println(jsonObject.toJSONString());
@@ -60,14 +61,17 @@ public class serverTestClient {
     }
     
     public void getWaypointsTest() throws IOException {
+        System.out.println("IN getWaypointsTest");
         Socket socket = new Socket(serverAddress, 3112);
         // Make connection and initialize streams
+        System.out.println("IN getWaypointsTest");
         try{
             in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             out = new PrintWriter(socket.getOutputStream(), true);
             
-            out.print(10);
-            
+            out.println(10);
+            out.flush();
+            System.out.println("flushed");
             String t;
             Object ob = null;
             JSONObject jsonObject;
@@ -75,6 +79,7 @@ public class serverTestClient {
             
             while((t = in.readLine()) !=null)
             {
+                System.out.println("IN readline loop");
                 try
                 {
                     ob = parser.parse(t);
@@ -97,7 +102,8 @@ public class serverTestClient {
     
     public static void main(String[] args) throws Exception {
         serverTestClient n = new serverTestClient();
+        n.addWaypointTest();
         n.getWaypointsTest();
-        //n.addWaypointTest();
+        
     }
 }

@@ -12,5 +12,5 @@ boilerServer: boilerServer.java
 	./makeServer.sh
 
 clean: 
-	rm cClient
-	rm *.class
+	rm -f cClient
+	rm -f *.class

@@ -317,7 +317,8 @@ class ThreadedHandler implements Runnable
         int requestInt;
         
         if(in.hasNextLine()){
-            requestInt=in.nextInt();
+            request=in.nextLine();
+            requestInt=Integer.parseInt(request);
         }else {
             return;
         }     
