@@ -99,10 +99,56 @@ public class serverTestClient {
         }
     }
     
+    public void updateWaypointAdj() throws IOException {
+        Socket socket = new Socket(serverAddress, 3112);
+        // Make connection and initialize streams
+        try{
+            in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            out = new PrintWriter(socket.getOutputStream(), true);
+            
+            out.println(11);
+            
+            JSONObject obj = new JSONObject();
+            obj.put("id", "4");
+            obj.put("adjID", "1,2");
+            out.println(obj.toJSONString());
+            
+            //out.println(obj.toJSONString());
+            //System.out.println(obj.toJSONString());
+            
+            // Consume the initial welcoming messages from the server
+            String t;
+            Object ob = null;
+            JSONObject jsonObject;
+            JSONParser parser = new JSONParser();
+            
+            while((t = in.readLine()) !=null)
+            {
+                try
+                {
+                    System.out .println(t);
+                    ob = parser.parse(t);
+                    jsonObject = (JSONObject) ob;
+                    System.out.println(jsonObject.toJSONString());
+                }catch (Exception e) {
+                    System.out.println(e.toString());
+                    out.println(e.toString());
+                }
+            }
+        }catch (IOException e)
+        {
+            e.printStackTrace();
+        }finally
+        {
+            socket.close();
+        }
+    }
+    //11
     
     public static void main(String[] args) throws Exception {
         serverTestClient n = new serverTestClient();
-        n.addWaypointTest();
+        //n.addWaypointTest();
+        n.updateWaypointAdj();
         n.getWaypointsTest();
         
     }
