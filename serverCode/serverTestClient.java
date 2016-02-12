@@ -192,7 +192,7 @@ public class serverTestClient {
         serverTestClient n = new serverTestClient();
         //n.addWaypointTest();
         //n.updateWaypointAdj();
-        n.deleteWaypoint();
+        //n.deleteWaypoint();
         n.getWaypointsTest();
         
     }

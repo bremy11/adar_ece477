@@ -9,6 +9,7 @@ import java.util.*;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
+import dijkstra.*;
 
 //sql database setup commands 
 //CREATE DATABASE adar_database;
@@ -89,6 +90,21 @@ class ThreadedHandler implements Runnable
         runNum = iteration;
     }
     
+    public static double distFrom(float lat1, float lng1, float lat2, float lng2) {
+        //http://stackoverflow.com/questions/837872/calculate-distance-in-meters-when-you-know-longitude-and-latitude-in-java
+        
+        double earthRadius = 6371000; //meters
+        double dLat = Math.toRadians(lat2-lat1);
+        double dLng = Math.toRadians(lng2-lng1);
+        double a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+            Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2)) *
+            Math.sin(dLng/2) * Math.sin(dLng/2);
+        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        double dist = (float) (earthRadius * c);
+        
+        return dist;
+    }
+    
     public static Connection getConnection() throws SQLException, IOException
     {
         Properties props = new Properties();
@@ -106,7 +122,7 @@ class ThreadedHandler implements Runnable
         
         return DriverManager.getConnection( url, ServerUser, ServerPassword);
     }
-    
+
     void sendWaypointPath(PrintWriter out) {
         
         Connection conn=null;
@@ -117,8 +133,8 @@ class ThreadedHandler implements Runnable
             Statement q1 = conn.createStatement();
             Statement q2 = conn.createStatement();
             
-            ResultSet r1 = q1.executeQuery("SELECT COUNT(id) FROM waypoints");
-            ResultSet r2 = q2.executeQuery( "SELECT longe, lat, adjID FROM waypoints");
+            ResultSet r1 = q1.executeQuery("SELECT MAX(id) FROM waypoints");
+            ResultSet r2 = q2.executeQuery( "SELECT id, longe, lat, adjID FROM waypoints");
             
             //Create a JSON Obj
             JSONObject obj = new JSONObject();
@@ -128,23 +144,105 @@ class ThreadedHandler implements Runnable
                 numPoints = r1.getString(1);
             }
             
+            int waypointSize = r2.getFetchSize();
+            EdgeWeightedDigraph wayPoints = new EdgeWeightedDigraph(waypointSize+2);
+            
+            int sourceID = waypointSize;
+            int destID = waypointSize+1;
+            //id converted to index
+            
+            HashMap<Integer,Integer> idToIndex = new HashMap();
+            int[] indexToId = new int[waypointSize];
+            //int[] idList = new int[waypointSize];
+            float[] longeList = new float[waypointSize];
+            float[] latList = new float[waypointSize];
+            String[] adjIdList = new String[waypointSize];
+            
+            //source and sink coordinates
+            float latSource = 0;
+            float longeSource= 0;
+            float latDest= 0;
+            float longeDest= 0;
+
+            int i = 0;
+            while(r2.next()) 
+            {
+                //two way, handles discrpancies/deleted waypoints
+                indexToId[i] = r2.getInt(1);
+                idToIndex.put(indexToId[i], i);
+                
+                longeList[i] = Float.parseFloat(r2.getString(2));
+                latList[i] = Float.parseFloat(r2.getString(3));
+                i++;
+            }
+            
+            int id;
+            int adj;
+            double dist;
+            double distFromSource;
+            double distToDest;
+            
+            
+            float lat1 = 0;
+            float lng1= 0;
+            float lat2= 0;
+            float lng2= 0;
+            
+            for (i = 0; i < waypointSize; i++)
+            {
+                //id = indexToId.get(i);
+                List<String> items = Arrays.asList(adjIdList[i].split("\\s*,\\s*"));
+                
+                for (String temp : items){
+                    int adjCur = idToIndex.get(Integer.parseInt(temp));
+                    
+                    lat1 = latList[i];
+                    lng1 = longeList[i];
+                    lat2 = latList[adjCur];
+                    lng2 = longeList[adjCur];
+                    
+                    dist = distFrom(lat1, lng1, lat2, lng2);
+                    
+                    wayPoints.addEdge(new DirectedEdge(i, adjCur, dist));
+                }
+                distFromSource = distFrom(latSource, longeSource, latList[i], longeList[i]);
+                wayPoints.addEdge(new DirectedEdge(sourceID, i, distFromSource));
+                distToDest = distFrom(latDest, longeDest, latList[i], longeList[i]);
+                wayPoints.addEdge(new DirectedEdge(i, destID, distToDest));
+            }
+            r1.close();
+            r2.close();
+            
+           
+            DijkstraSP sp = new DijkstraSP(wayPoints, sourceID);
+            StringBuilder message = new StringBuilder();
+            
+            if (sp.hasPathTo(destID)) {
+                message.append('{');
+                message.append(numPoints);
+                for (DirectedEdge x : sp.pathTo(destID)) {
+                    
+                    message.append('{');
+                    message.append(Float.toString(longeList[x.to()]));
+                    message.append(',');
+                    message.append(Float.toString(latList[x.to()]));
+                    message.append('}');
+                    
+                }
+                message.append('}');   
+            }
+            else {
+                throw new Exception("path not connected");
+            }
+            
+            /*
             StringBuilder message = new StringBuilder();
             message.append('{');
             message.append(numPoints);
-            
-             while(r2.next()) {
-                message.append('(');
-                message.append(r2.getString(1));
-                message.append(',');
-                message.append(r2.getString(2));
-                message.append(')');
-            }
-             
-             message.append('}');
+            message.append('}');
             out.println(message.toString());
-           
-            r1.close();
-            r2.close();
+           */
+
         }
         catch (Exception e) {
             System.out.println(e.toString());
