@@ -1,0 +1,1 @@
+https://learn.adafruit.com/adafruit-hmc5883l-breakout-triple-axis-magnetometer-compass-sensor/pinouts
