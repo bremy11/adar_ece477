@@ -138,8 +138,7 @@ class ThreadedHandler implements Runnable
             
             //Create a JSON Obj
             JSONObject obj = new JSONObject();
-            
-            //Get the current number of events
+
             while(r1.next()) {
                 numPoints = r1.getString(1);
             }
@@ -188,6 +187,11 @@ class ThreadedHandler implements Runnable
             float lat2= 0;
             float lng2= 0;
             
+            double shortDistDest = 999999999;
+            int shortDistDestId = -1;
+            double shortDistSource = 999999999;
+            int shortDistSourceId = -1;
+
             for (i = 0; i < waypointSize; i++)
             {
                 //id = indexToId.get(i);
@@ -205,11 +209,34 @@ class ThreadedHandler implements Runnable
                     
                     wayPoints.addEdge(new DirectedEdge(i, adjCur, dist));
                 }
+
+                //need to find points closest to dest and source for all points
+
+                
                 distFromSource = distFrom(latSource, longeSource, latList[i], longeList[i]);
-                wayPoints.addEdge(new DirectedEdge(sourceID, i, distFromSource));
+                if (distFromSource <= shortDistSource)
+                {
+                    shortDistSource = distFromSource;
+                    shortDistSourceId = i;
+                }
+
                 distToDest = distFrom(latDest, longeDest, latList[i], longeList[i]);
-                wayPoints.addEdge(new DirectedEdge(i, destID, distToDest));
+                if (distToDest <= shortDistDest)
+                {
+                    shortDistDest = distToDest;
+                    shortDistDestId = i;
+                }    
             }
+
+            if (shortDistSourceId == -1 || shortDistDest == -1)
+            {
+                throw new Exception("in sendWaypointPath, source or dest id not set");
+            }
+
+            wayPoints.addEdge(new DirectedEdge(sourceID, shortDistSourceId, shortDistSource));
+            wayPoints.addEdge(new DirectedEdge(i, shortDistDestId, shortDistDest));
+
+            //close the sql quirres
             r1.close();
             r2.close();
             
@@ -220,7 +247,8 @@ class ThreadedHandler implements Runnable
             if (sp.hasPathTo(destID)) {
                 message.append('{');
                 message.append(numPoints);
-                for (DirectedEdge x : sp.pathTo(destID)) {
+                for (DirectedEdge x : sp.pathTo(destID))
+                {
                     
                     message.append('{');
                     message.append(Float.toString(longeList[x.to()]));
@@ -234,21 +262,10 @@ class ThreadedHandler implements Runnable
             else {
                 throw new Exception("path not connected");
             }
-            
-            /*
-            StringBuilder message = new StringBuilder();
-            message.append('{');
-            message.append(numPoints);
-            message.append('}');
-            out.println(message.toString());
-           */
-
-        }
-        catch (Exception e) {
+        }catch (Exception e) {
             System.out.println(e.toString());
             out.println(e.toString());
-        }
-        finally
+        }finally
         {
             try {
                 if (conn!=null) conn.close();
@@ -440,8 +457,7 @@ class ThreadedHandler implements Runnable
                 
                 //get the command from the JSON object 
                 jsonObject = (JSONObject) obj;
-                System.out.println(jsonObject.toJSONString());            
-                
+                System.out.println(jsonObject.toJSONString()); 
             }
         }
 
