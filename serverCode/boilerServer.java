@@ -18,6 +18,11 @@ import dijkstra.*;
 
 //sample insert for testing
 
+//INSERT INTO waypoints Values (1, '45', '44', '2,3', UTC_TIMESTAMP());
+//INSERT INTO waypoints Values (1, '45', '45', '1,3', UTC_TIMESTAMP());
+//INSERT INTO waypoints Values (1, '45', '46', '1,2', UTC_TIMESTAMP());
+
+
 //INSERT INTO waypoints Values (1, '3.1415', '3.1415', '2,3', UTC_TIMESTAMP());
 //INSERT INTO waypoints Values (2, '2.2222', '2.2222', '1,3', UTC_TIMESTAMP());
 //INSERT INTO waypoints Values (3, '3.3333', '3.3333', '1,2', UTC_TIMESTAMP());
@@ -158,10 +163,12 @@ class ThreadedHandler implements Runnable
             String[] adjIdList = new String[waypointSize];
             
             //source and sink coordinates
-            float latSource = 0;
-            float longeSource= 0;
-            float latDest= 0;
-            float longeDest= 0;
+            
+            float longeSource= 45;
+            float latSource = 43;
+            float longeDest= 45;
+            float latDest= 47;
+
 
             int i = 0;
             while(r2.next()) 
