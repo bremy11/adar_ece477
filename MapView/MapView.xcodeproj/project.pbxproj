@@ -7,6 +7,10 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		A60388CE1C73D40600623857 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A60388CD1C73D40600623857 /* Foundation.framework */; };
+		A60388D01C73D41000623857 /* Security.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A60388CF1C73D41000623857 /* Security.framework */; };
+		A60388D21C73D41800623857 /* CFNetwork.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A60388D11C73D41800623857 /* CFNetwork.framework */; };
+		A60388D61C73D5E500623857 /* libicucore.A.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = A60388D51C73D5E500623857 /* libicucore.A.dylib */; };
 		A69F58121C67D2B600FE0160 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = A69F58111C67D2B600FE0160 /* AppDelegate.swift */; };
 		A69F58141C67D2B600FE0160 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A69F58131C67D2B600FE0160 /* ViewController.swift */; };
 		A69F58171C67D2B600FE0160 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = A69F58151C67D2B600FE0160 /* Main.storyboard */; };
@@ -34,6 +38,13 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		A60388C71C73D20200623857 /* SocketRocket 2.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = "SocketRocket 2.xcodeproj"; path = "../../SocketRocket/SocketRocket 2.xcodeproj"; sourceTree = "<group>"; };
+		A60388CC1C73D27500623857 /* MapView-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "MapView-Bridging-Header.h"; sourceTree = "<group>"; };
+		A60388CD1C73D40600623857 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
+		A60388CF1C73D41000623857 /* Security.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Security.framework; path = System/Library/Frameworks/Security.framework; sourceTree = SDKROOT; };
+		A60388D11C73D41800623857 /* CFNetwork.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CFNetwork.framework; path = System/Library/Frameworks/CFNetwork.framework; sourceTree = SDKROOT; };
+		A60388D31C73D44300623857 /* libicucore.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libicucore.tbd; path = usr/lib/libicucore.tbd; sourceTree = SDKROOT; };
+		A60388D51C73D5E500623857 /* libicucore.A.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libicucore.A.dylib; path = ../../../../../usr/lib/libicucore.A.dylib; sourceTree = "<group>"; };
 		A69F580E1C67D2B600FE0160 /* Team12.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Team12.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A69F58111C67D2B600FE0160 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		A69F58131C67D2B600FE0160 /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
@@ -54,6 +65,10 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A60388D61C73D5E500623857 /* libicucore.A.dylib in Frameworks */,
+				A60388D21C73D41800623857 /* CFNetwork.framework in Frameworks */,
+				A60388D01C73D41000623857 /* Security.framework in Frameworks */,
+				A60388CE1C73D40600623857 /* Foundation.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -74,13 +89,26 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		A60388C81C73D20200623857 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
 		A69F58051C67D2B500FE0160 = {
 			isa = PBXGroup;
 			children = (
+				A60388D51C73D5E500623857 /* libicucore.A.dylib */,
+				A60388D31C73D44300623857 /* libicucore.tbd */,
+				A60388D11C73D41800623857 /* CFNetwork.framework */,
+				A60388CF1C73D41000623857 /* Security.framework */,
+				A60388CD1C73D40600623857 /* Foundation.framework */,
 				A69F58101C67D2B600FE0160 /* MapView */,
 				A69F58251C67D2B600FE0160 /* MapViewTests */,
 				A69F58301C67D2B600FE0160 /* MapViewUITests */,
 				A69F580F1C67D2B600FE0160 /* Products */,
+				A60388C71C73D20200623857 /* SocketRocket 2.xcodeproj */,
 			);
 			sourceTree = "<group>";
 		};
@@ -99,6 +127,7 @@
 			children = (
 				A69F58111C67D2B600FE0160 /* AppDelegate.swift */,
 				A69F58131C67D2B600FE0160 /* ViewController.swift */,
+				A60388CC1C73D27500623857 /* MapView-Bridging-Header.h */,
 				A69F58151C67D2B600FE0160 /* Main.storyboard */,
 				A69F58181C67D2B600FE0160 /* Assets.xcassets */,
 				A69F581A1C67D2B600FE0160 /* LaunchScreen.storyboard */,
@@ -215,6 +244,12 @@
 			mainGroup = A69F58051C67D2B500FE0160;
 			productRefGroup = A69F580F1C67D2B600FE0160 /* Products */;
 			projectDirPath = "";
+			projectReferences = (
+				{
+					ProductGroup = A60388C81C73D20200623857 /* Products */;
+					ProjectRef = A60388C71C73D20200623857 /* SocketRocket 2.xcodeproj */;
+				},
+			);
 			projectRoot = "";
 			targets = (
 				A69F580D1C67D2B600FE0160 /* MapView */,
@@ -482,6 +517,7 @@
 				A69F58381C67D2B600FE0160 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		A69F58391C67D2B600FE0160 /* Build configuration list for PBXNativeTarget "MapViewTests" */ = {
 			isa = XCConfigurationList;
@@ -490,6 +526,7 @@
 				A69F583B1C67D2B600FE0160 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		A69F583C1C67D2B600FE0160 /* Build configuration list for PBXNativeTarget "MapViewUITests" */ = {
 			isa = XCConfigurationList;
@@ -498,6 +535,7 @@
 				A69F583E1C67D2B600FE0160 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
