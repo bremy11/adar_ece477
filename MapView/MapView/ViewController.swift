@@ -10,6 +10,7 @@ import UIKit
 import MapKit
 import CoreLocation
 
+
 class ViewController: UIViewController, MKMapViewDelegate, CLLocationManagerDelegate
 {
     @IBOutlet weak var mapView: MKMapView!
@@ -33,7 +34,7 @@ class ViewController: UIViewController, MKMapViewDelegate, CLLocationManagerDele
             case .Default:
                 
                 //ADD CODE TO SEND TO SERVER
-                
+                //self.initNetworkCommunication()
                 
                 self.dropAPin()
                 
@@ -47,7 +48,38 @@ class ViewController: UIViewController, MKMapViewDelegate, CLLocationManagerDele
             }
         }))
     }
-
+    
+    func initNetworkCommunication(){
+        let addr = "127.0.0.1"
+        let port = 9091
+        
+        //       var host :NSHost = NSHost(address: addr)
+        var inp :NSInputStream?
+        var out :NSOutputStream?
+        
+        NSStream.getStreamsToHostWithName(addr, port: port, inputStream: &inp, outputStream: &out)
+        
+        let inputStream = inp!
+        let outputStream = out!
+        inputStream.open()
+        outputStream.open()
+        
+        //var readByte :UInt8 = 0
+        //while inputStream.hasBytesAvailable {
+        //    inputStream.read(&readByte, maxLength: 1)
+        //}
+        
+        //let string = "foo bar"
+        //let data = string.dataUsingEncoding(NSUTF8StringEncoding, allowLossyConversion: false)!
+        //let bytesWritten = outputStream.write(UnsafePointer(data.bytes), maxLength: data.length)
+        
+        var writeByte :UInt8 = 11
+        //var buffer = [UInt8](count: 8, repeatedValue: 1)
+        
+        // buffer is a UInt8 array containing bytes of the string "Jonathan Yaniv.".
+        outputStream.write(&writeByte, maxLength: 1)
+    }
+    
     
     func successfulOrder() {
         //Second alert message -- Successful Order
@@ -86,7 +118,7 @@ class ViewController: UIViewController, MKMapViewDelegate, CLLocationManagerDele
         pinDrop1.coordinate = waypoint1
         pinDrop1.title = "Waypoint 1"
         mapView.addAnnotation(pinDrop1)
-
+        
         
         //Waypoint 2
         let waypoint2 = CLLocationCoordinate2DMake(40.42983, -86.915)
@@ -104,28 +136,28 @@ class ViewController: UIViewController, MKMapViewDelegate, CLLocationManagerDele
         */
         
     }
-
+    
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
     }
-
+    
     //MARK: - Location Delegate Methods
-
+    
     func locationManager(manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         
         let location = locations.last
         
         let center = CLLocationCoordinate2D(latitude: location!.coordinate.latitude, longitude: location!.coordinate.longitude)
-
+        
         let region = MKCoordinateRegion(center: center, span: MKCoordinateSpan(latitudeDelta: 0.01, longitudeDelta: 0.01))
         
         self.mapView.setRegion(region, animated: true)
-
+        
         self.locationManager.stopUpdatingLocation()
         
         let locValue:CLLocationCoordinate2D = manager.location!.coordinate
-        print("locations = \(locValue.latitude) \(locValue.longitude)")
+        print("locations =  latitude: \(locValue.latitude) longitude: \(locValue.longitude)")
     }
     
     
@@ -133,6 +165,6 @@ class ViewController: UIViewController, MKMapViewDelegate, CLLocationManagerDele
     {
         print("Errors " + error.localizedDescription)
     }
-
+    
 }
 
