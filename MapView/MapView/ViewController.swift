@@ -34,7 +34,7 @@ class ViewController: UIViewController, MKMapViewDelegate, CLLocationManagerDele
             case .Default:
                 
                 //ADD CODE TO SEND TO SERVER
-                //self.initNetworkCommunication()
+                self.initNetworkCommunication()
                 
                 self.dropAPin()
                 
@@ -49,6 +49,7 @@ class ViewController: UIViewController, MKMapViewDelegate, CLLocationManagerDele
         }))
     }
     
+    /*
     func initNetworkCommunication(){
         let addr = "127.0.0.1"
         let port = 9091
@@ -61,6 +62,10 @@ class ViewController: UIViewController, MKMapViewDelegate, CLLocationManagerDele
         
         let inputStream = inp!
         let outputStream = out!
+        
+        inputStream.scheduleInRunLoop(.mainRunLoop(), forMode: NSDefaultRunLoopMode)
+        outputStream.scheduleInRunLoop(.mainRunLoop(), forMode: NSDefaultRunLoopMode)
+        
         inputStream.open()
         outputStream.open()
         
@@ -69,16 +74,139 @@ class ViewController: UIViewController, MKMapViewDelegate, CLLocationManagerDele
         //    inputStream.read(&readByte, maxLength: 1)
         //}
         
-        //let string = "foo bar"
+        let st = "foo bar\n"
         //let data = string.dataUsingEncoding(NSUTF8StringEncoding, allowLossyConversion: false)!
         //let bytesWritten = outputStream.write(UnsafePointer(data.bytes), maxLength: data.length)
         
-        var writeByte :UInt8 = 11
+        //var writeByte :UInt8 = 11
         //var buffer = [UInt8](count: 8, repeatedValue: 1)
         
         // buffer is a UInt8 array containing bytes of the string "Jonathan Yaniv.".
-        outputStream.write(&writeByte, maxLength: 1)
+        
+        outputStream.write(st, maxLength: 8)
+        
+        var readByte :UInt8 = 0
+        var x = true
+        var i = 0
+        var outStr = ""
+        while x {
+        while inputStream.hasBytesAvailable {
+            //print(i)
+            inputStream.read(&readByte, maxLength: 1)
+            
+            let u = UnicodeScalar(readByte)
+            let char = String(u)
+            //print(char)
+            outStr += char
+            i++
+            x = false
+        }
+        }
+        print(outStr)
+        
+    }*/
+    
+    func initNetworkCommunication(){
+        let addr = "moore11.cs.purdue.edu"
+        let port = 3112
+        
+        //       var host :NSHost = NSHost(address: addr)
+        var inp :NSInputStream?
+        var out :NSOutputStream?
+        
+        NSStream.getStreamsToHostWithName(addr, port: port, inputStream: &inp, outputStream: &out)
+        
+        let inputStream = inp!
+        let outputStream = out!
+        
+        inputStream.scheduleInRunLoop(.mainRunLoop(), forMode: NSDefaultRunLoopMode)
+        outputStream.scheduleInRunLoop(.mainRunLoop(), forMode: NSDefaultRunLoopMode)
+        
+        inputStream.open()
+        outputStream.open()
+        
+        //var readByte :UInt8 = 0
+        //while inputStream.hasBytesAvailable {
+        //    inputStream.read(&readByte, maxLength: 1)
+        //}
+        
+        let dataStr = "13\n"
+        //let data = string.dataUsingEncoding(NSUTF8StringEncoding, allowLossyConversion: false)!
+        //let bytesWritten = outputStream.write(UnsafePointer(data.bytes), maxLength: data.length)
+        
+        //var writeByte :UInt8 = 10
+        //var buffer = [UInt8](count: 8, repeatedValue: 1)
+        
+        // buffer is a UInt8 array containing bytes of the string "Jonathan Yaniv.".
+
+        outputStream.write(dataStr , maxLength: 3)
+        
+        //json build test
+        let validDictionary = [
+            "lat": "46",
+            "longe": "43"
+        ]
+        
+        if NSJSONSerialization.isValidJSONObject(validDictionary) { // True
+            do {
+                let rawData = try NSJSONSerialization.dataWithJSONObject(validDictionary, options: .PrettyPrinted)
+                //print(rawData)
+            } catch {
+                // Handle Error
+            }
+            
+        }else{
+            print("Invalid JSON data")
+            
+        }
+        
+        var readByte :UInt8 = 0
+        var x = true
+        var i = 0
+        var outStr = ""
+        while x {
+            while inputStream.hasBytesAvailable {
+                //print(i)
+                inputStream.read(&readByte, maxLength: 1)
+                
+                let u = UnicodeScalar(readByte)
+                
+                let char = String(u)
+                print(char)
+                
+                
+                outStr += char
+                i++
+                if (char == "\n"){
+                    x = false
+                    break
+                }
+                //x = false
+            }
+        }
+        print(outStr)
+       
+        
+        do {
+            let json = try NSJSONSerialization.JSONObjectWithData(outStr.dataUsingEncoding(NSUTF8StringEncoding)!, options: .AllowFragments)
+            print(json)
+            /*
+            if let blogs = json["blogs"] as? [[String: AnyObject]] {
+                for blog in blogs {
+                    if let name = blog["name"] as? String {
+                        names.append(name)
+                    }
+                }
+            }*/
+            
+        } catch {
+            print("error serializing JSON: \(error)")
+        }
+        
+        //print(names) // ["Bloxus test", "Manila Test"]
     }
+    
+    
     
     
     func successfulOrder() {

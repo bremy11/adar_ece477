@@ -15,7 +15,7 @@
  //https://en.wikibooks.org/wiki/C_Programming/Networking_in_UNIX
 int main(int argc, char *argv[])
 {
-	char* msg = "1\n";
+
    char buffer[MAXRCVLEN + 1]; /* +1 so we can add null terminator */
    int len, mysocket;
    struct sockaddr_in dest; 
@@ -28,13 +28,27 @@ int main(int argc, char *argv[])
    dest.sin_port = htons(PORTNUM);                /* set destination port number */
  
    connect(mysocket, (struct sockaddr *)&dest, sizeof(struct sockaddr));
-  	send(mysocket, msg, strlen(msg), 0); 
+  	
+
+   char* msg = "2\n";
+
+   char* msg2 = "45,46\n";
+   char* msg3 = "45,47\n";
+   char* msg4 = "1\n";//success
+   send(mysocket, msg, strlen(msg), 0); 
+   //recieve coordinates of waypoints
    len = recv(mysocket, buffer, MAXRCVLEN, 0);
+   buffer[len] = '\0';
+   printf("Received: %s (%d bytes).\n", buffer, len);
+   send(mysocket, msg2, strlen(msg2), 0); 
+   send(mysocket, msg3, strlen(msg3), 0);
+   send(mysocket, msg4, strlen(msg3), 0);
+   //len = recv(mysocket, buffer, MAXRCVLEN, 0);
  
    /* We have to null terminate the received data ourselves */
-   buffer[len] = '\0';
+   //buffer[len] = '\0';
  
-   printf("Received %s (%d bytes).\n", buffer, len);
+   
  
    close(mysocket);
    return EXIT_SUCCESS;

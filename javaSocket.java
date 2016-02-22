@@ -24,8 +24,11 @@ public class javaSocket {
                 Socket socket = listener.accept();
                 try {
                     BufferedReader input = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-                    int in = input.read();
-                    System.out.println(in);
+                    String in = input.readLine();
+                    
+	PrintWriter out = new PrintWriter (socket.getOutputStream(), true);
+			out.println("hello");
+			System.out.println(in);
                 } finally {
                     socket.close();
                 }
