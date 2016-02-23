@@ -622,8 +622,8 @@ class ThreadedHandler implements Runnable
             if(in.hasNextLine()){
                 request=in.nextLine();
                 System.out.println("request = "+request);
-                request.replace('[', '{')
-                request.replace(']', '}')
+                request.replace('[', '{');
+                request.replace(']', '}');
                 System.out.println("request = "+request);
                 Object obj = null;
                 JSONParser parser = new JSONParser();
