@@ -30,6 +30,7 @@ int main(int argc, char *argv[])
    connect(mysocket, (struct sockaddr *)&dest, sizeof(struct sockaddr));
   	
 
+
    char* msg = "2\n";
 
    char* msg2 = "45,46\n";

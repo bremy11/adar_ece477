@@ -308,6 +308,7 @@ class ThreadedHandler implements Runnable
             String request;
             String[] splitInput;
             System.out.println("waiting for request");
+            availableRover.release();
             availableRequest.acquire();//wait for available request
             System.out.println("rover accepted request");
 
@@ -411,11 +412,14 @@ class ThreadedHandler implements Runnable
         {
             JSONObject roverCoordinates = new JSONObject();
 
+            System.out.println("checking for available rover");
             if (availableRover.availablePermits() == 0)
             {
+                System.out.println("no available rover");
                 roverCoordinates.put("success", 0);
                 out.println("Error, no available delivery rover");
-                return;
+                //return;
+                throw new Exception("No available rover");
             }
             availableRover.acquire();
             System.out.println("rover designated for delivery");

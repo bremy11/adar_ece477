@@ -142,19 +142,15 @@ class ViewController: UIViewController, MKMapViewDelegate, CLLocationManagerDele
         outputStream.write(dataStr , maxLength: 3)
         
         //json build test
-        let jsonObject: [String: AnyObject] = [
+        let validDictionary = [
             "lat": "46",
             "longe": "43"
         ]
         
-        if NSJSONSerialization.isValidJSONObject(jsonObject) { // True
+        if NSJSONSerialization.isValidJSONObject(validDictionary) { // True
             do {
-                //let rawData = try NSJSONSerialization.dataWithJSONObject(jsonObject, options: .PrettyPrinted)
-               // print(rawData)
-                
-                let send = "\(jsonObject)\n"
-                print(send)
-                outputStream.write(send , maxLength: 1024)
+                let rawData = try NSJSONSerialization.dataWithJSONObject(validDictionary, options: .PrettyPrinted)
+                print(rawData)
             } catch {
                 // Handle Error
             }
@@ -164,6 +160,31 @@ class ViewController: UIViewController, MKMapViewDelegate, CLLocationManagerDele
             
         }
         
+        /*
+let jsonObject: [String: AnyObject] =
+[
+"lat": "46",
+"longe": "43"
+]
+
+if NSJSONSerialization.isValidJSONObject(jsonObject) { // True
+do {
+//let rawData = try NSJSONSerialization.dataWithJSONObject(jsonObject, options: .PrettyPrinted)
+// print(rawData)
+
+//let send = "\(jsonObject)\n"
+print(send)
+outputStream.write(send , maxLength: 1024)
+} catch {
+// Handle Error
+}
+
+}else{
+print("Invalid JSON data")
+
+}
+*/
+
         var readByte :UInt8 = 0
         var x = true
         var i = 0
@@ -190,7 +211,7 @@ class ViewController: UIViewController, MKMapViewDelegate, CLLocationManagerDele
         }
         print(outStr)
        
-        /*
+        
         do {
             let json = try NSJSONSerialization.JSONObjectWithData(outStr.dataUsingEncoding(NSUTF8StringEncoding)!, options: .AllowFragments)
             print(json)
@@ -205,7 +226,7 @@ class ViewController: UIViewController, MKMapViewDelegate, CLLocationManagerDele
             
         } catch {
             print("error serializing JSON: \(error)")
-        }*/
+        }
         
         //print(names) // ["Bloxus test", "Manila Test"]
     }
