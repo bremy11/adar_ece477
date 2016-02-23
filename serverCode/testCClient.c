@@ -37,7 +37,12 @@ int main(int argc, char *argv[])
    char* msg4 = "1\n";//success
    send(mysocket, msg, strlen(msg), 0); 
    //recieve coordinates of waypoints
-   len = recv(mysocket, buffer, MAXRCVLEN, 0);
+   while (1){
+      len = recv(mysocket, buffer, MAXRCVLEN, 0);
+      if (len > 0){
+         break;
+      }
+   }
    buffer[len] = '\0';
    printf("Received: %s (%d bytes).\n", buffer, len);
    send(mysocket, msg2, strlen(msg2), 0); 

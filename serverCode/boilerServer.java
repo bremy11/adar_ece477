@@ -5,6 +5,8 @@ import java.util.*;
 import java.sql.*;
 import java.io.*;
 import java.util.*;
+import java.util.concurrent.Semaphore;
+
 
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -56,6 +58,15 @@ public class boilerServer
     /**
      *Usage is useless now that we will be using JSON objects
      */
+
+    /*static Semaphore availableRover = new Semaphore(0);
+    static Semaphore lockGlobals = new Semaphore(1); //used to lock global variables 
+    static float msgLat = 0;
+    static float msgLonge = 0;
+    static float roverLonge = 0;
+    static float roverLat = 0;
+    static int atLocation = 0;*/
+
     public static void main(String[] args )
     {  
         try{  
@@ -78,21 +89,31 @@ public class boilerServer
         }
     }
 }
-
-/**
- This class handles the client input for one server socket connection. 
- */
+    /**
+    * This class handles the client input for one server socket connection. 
+     */
 class ThreadedHandler implements Runnable
 { 
     final static String ServerUser = "root";
     final static String ServerPassword = "1827";
     int runNum;
     private Socket incoming;
-    
-    public ThreadedHandler(Socket newSoc, int iteration)
-    { 
+
+    static Semaphore availableRover = new Semaphore(0);
+    static Semaphore lockGlobals = new Semaphore(1); //used to lock global variables
+    static Semaphore availableRequest = new Semaphore(0); 
+    static float msgLat;
+    static float msgLonge;
+    static float roverLonge;
+    static float roverLat;
+    static int atLocation;
+
+    /*public ThreadedHandler(Socket newSoc, int iteration, Semaphore availableRover, Semaphore lockGlobals, 
+        float msgLat, float msgLonge,float roverLonge,  float roverLat, int atLocation)*/
+    public ThreadedHandler(Socket newSoc, int iteration){ 
         incoming = newSoc;
         runNum = iteration;
+
     }
     
     public static double distFrom(float lat1, float lng1, float lat2, float lng2) {
@@ -188,7 +209,6 @@ class ThreadedHandler implements Runnable
             double distFromSource;
             double distToDest;
             
-            
             float lat1 = 0;
             float lng1= 0;
             float lat2= 0;
@@ -216,9 +236,7 @@ class ThreadedHandler implements Runnable
                     
                     wayPoints.addEdge(new DirectedEdge(i, adjCur, dist));
                 }
-
                 //need to find points closest to dest and source for all points
-
                 
                 distFromSource = distFrom(latSource, longeSource, latList[i], longeList[i]);
                 if (distFromSource <= shortDistSource)
@@ -232,7 +250,7 @@ class ThreadedHandler implements Runnable
                 {
                     shortDistDest = distToDest;
                     shortDistDestId = i;
-                }    
+                }
             }
 
             if (shortDistSourceId == -1 || shortDistDest == -1)
@@ -246,7 +264,6 @@ class ThreadedHandler implements Runnable
             //close the sql quirres
             r1.close();
             r2.close();
-            
            
             DijkstraSP sp = new DijkstraSP(wayPoints, sourceID);
             StringBuilder message = new StringBuilder();
@@ -256,13 +273,11 @@ class ThreadedHandler implements Runnable
                 message.append(numPoints);
                 for (DirectedEdge x : sp.pathTo(destID))
                 {
-                    
                     message.append('{');
                     message.append(Float.toString(longeList[x.to()]));
                     message.append(',');
                     message.append(Float.toString(latList[x.to()]));
                     message.append('}');
-                    
                 }
                 message.append('}');   
             }
@@ -281,7 +296,158 @@ class ThreadedHandler implements Runnable
             }
         }
     }
+
+    //main rover request
+    void roverOnline(Scanner in, PrintWriter out) {
+        Connection conn=null;
+        try
+        { 
+            //JSONObject roverCoordinates = new JSONObject();
+            //long, lat\n   //found
+            //1\n   //found
+            String request;
+            String[] splitInput;
+            System.out.println("waiting for request");
+            availableRequest.acquire();//wait for available request
+            System.out.println("rover accepted request");
+
+            out.println("2,45.0,45.0,45.0,46.0");
+            //send shrotest path
+            while (true)
+            {
+                if(in.hasNextLine())
+                {
+                    request=in.nextLine();
+                    splitInput = request.split(",");
+                    if (splitInput.length ==1 && splitInput[0].equals("1"))
+                    {
+                        //rover at location
+                        System.out.println("rover at location");
+                        lockGlobals.acquire();
+                        atLocation = 1;
+                        lockGlobals.release();
+                        availableRover.release();//increment semaphore, rover available
+                        break;
+                    }else if(splitInput.length ==2)
+                    {
+                        float latTemp = 0;
+                        float longTemp= 0;
+                        //catch here?
+                        
+                        longTemp = Float.parseFloat(splitInput[0]);
+                        latTemp = Float.parseFloat(splitInput[1]);
+
+                        lockGlobals.acquire();
+                        roverLonge =longTemp;
+                        roverLat = latTemp;
+                        lockGlobals.release();
+                    }else 
+                    {
+                        //Error
+                        throw new Exception("Error, split of rover input wasn't 1 or 2");
+                    }
+                }else {
+                    throw new Exception("Input closed before rover reached destination");
+                }
+            }
+            //check request criteria here and send to client
+        }
+        catch (Exception e) {
+            System.out.println(e.toString());
+            out.println(e.toString());
+        }
+        finally
+        {
+            try {
+                if (conn!=null) conn.close();
+            }
+            catch (Exception e) {
+            }
+        }
+    }
     
+    void requestRoverLocation( PrintWriter out) {
+        Connection conn=null;
+        try
+        { 
+            JSONObject roverCoordinates = new JSONObject();
+            lockGlobals.acquire();
+            roverCoordinates.put("longe", roverLonge);
+            roverCoordinates.put("lat", roverLat);
+
+            if (atLocation ==1)
+            {
+                roverCoordinates.put("atLocation", 1);
+                atLocation = 0;
+
+            } else {
+                roverCoordinates.put("atLocation", 0);
+
+            }
+
+            lockGlobals.release();
+            out.println(roverCoordinates.toJSONString());
+            //check request criteria here and send to client
+        }
+        catch (Exception e) {
+            System.out.println(e.toString());
+            out.println(e.toString());
+        }
+        finally
+        {
+            try {
+                if (conn!=null) conn.close();
+            }
+            catch (Exception e) {
+            }
+        }
+    }
+
+    void requestDelivery(JSONObject obj, PrintWriter out) {
+        Connection conn=null;
+        
+
+        try
+        {
+            JSONObject roverCoordinates = new JSONObject();
+
+            if (availableRover.availablePermits() == 0)
+            {
+                roverCoordinates.put("success", 0);
+                out.println("Error, no available delivery rover");
+                return;
+            }
+            availableRover.acquire();
+            System.out.println("rover designated for delivery");
+            lockGlobals.acquire();
+            msgLat = Float.parseFloat((String) obj.get("lat"));
+            msgLonge = Float.parseFloat((String) obj.get("longe"));
+            lockGlobals.release();
+            roverCoordinates.put("success", 1);
+            //roverCoordinates.put("longe", roverLonge);
+            //roverCoordinates.put("lat", roverLat);
+            
+
+
+            
+            availableRequest.release(); //increment semaphore count, available request
+            out.println(roverCoordinates.toJSONString());
+
+        }
+        catch (Exception e) {
+            System.out.println(e.toString());
+            out.println(e.toString());
+        }
+        finally
+        {
+            try {
+                if (conn!=null) conn.close();
+            }
+            catch (Exception e) {
+            }
+        }
+    }
+
     void getAllWaypoints(PrintWriter out) {
         Connection conn=null;
         try
@@ -353,14 +519,12 @@ class ThreadedHandler implements Runnable
             catch (Exception e) {}
         }
     }
-
     
     /**
      *This will add a new event to the database
      */
     void addWaypoint(JSONObject obj, PrintWriter out) {
         Connection conn = null;
-        
         try{
             //get a connection & set it to change the db automatically
             
@@ -474,6 +638,7 @@ class ThreadedHandler implements Runnable
                 sendWaypointPath(out);
             }else if(requestInt == 2){
                 //2, database requests current gps waypoint
+                roverOnline(in,out);
             }else if(requestInt == 3){
                 //3, rover comes on line
             }else if(requestInt == 4){
@@ -491,6 +656,7 @@ class ThreadedHandler implements Runnable
                 deleteWaypoint(jsonObject, out);
             }else if(requestInt == 13){
                 //9, request delivery
+                requestDelivery(jsonObject, out);//json of request location
             }else if(requestInt == 14){
                 addWaypoint(jsonObject,out);
             }else if(requestInt == 15){
@@ -532,3 +698,4 @@ class ThreadedHandler implements Runnable
         }
     }
 }
+
