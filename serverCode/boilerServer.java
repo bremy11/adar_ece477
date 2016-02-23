@@ -615,13 +615,16 @@ class ThreadedHandler implements Runnable
         }     
         
         JSONObject jsonObject = null;
-        
+        System.out.println("requestInt = "+requestInt);
         if (11<= requestInt && requestInt <=14){
             //if client side request requires json 
             
             if(in.hasNextLine()){
                 request=in.nextLine();
-                System.out.println(request);
+                System.out.println("request = "+request);
+                request.replace('[', '{')
+                request.replace(']', '}')
+                System.out.println("request = "+request);
                 Object obj = null;
                 JSONParser parser = new JSONParser();
                 try{

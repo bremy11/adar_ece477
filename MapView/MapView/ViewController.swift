@@ -147,10 +147,19 @@ class ViewController: UIViewController, MKMapViewDelegate, CLLocationManagerDele
             "longe": "43"
         ]
         
+        
+        
         if NSJSONSerialization.isValidJSONObject(validDictionary) { // True
             do {
-                let rawData = try NSJSONSerialization.dataWithJSONObject(validDictionary, options: .PrettyPrinted)
-                print(rawData)
+                //let rawData = try NSJSONSerialization.dataWithJSONObject(validDictionary, options: .PrettyPrinted)
+                //print(rawData)
+                //outputStream.write(UnsafePointer<UInt8>(rawData.bytes) , maxLength: 1024)
+                let send = "\(validDictionary)\n"
+                print(send)
+                outputStream.write(send, maxLength:1024);
+                let newLine = "\n"
+                outputStream.write(newLine , maxLength: 1)
+                //print("\n")
             } catch {
                 // Handle Error
             }
