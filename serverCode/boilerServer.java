@@ -617,6 +617,7 @@ class ThreadedHandler implements Runnable
             
             if(in.hasNextLine()){
                 request=in.nextLine();
+                System.out.println(request);
                 Object obj = null;
                 JSONParser parser = new JSONParser();
                 try{
