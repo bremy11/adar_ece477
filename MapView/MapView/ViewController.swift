@@ -209,14 +209,16 @@ class ViewController: UIViewController, MKMapViewDelegate, CLLocationManagerDele
             }
         }
         print(outStr)
-        print("\(outStr)")
         
         do {
             
-            let data = outStr.dataUsingEncoding(NSUTF8StringEncoding, allowLossyConversion: false)!
-            //let json: AnyObject! = try NSJSONSerialization.JSONObjectWithData(outStr, options: [])
-            let json : AnyObject! = try NSJSONSerialization.JSONObjectWithData(data, options: .AllowFragments)
-            print(json)
+            let data: NSData = outStr.dataUsingEncoding(NSUTF8StringEncoding, allowLossyConversion: false)!
+            //let json = try NSJSONSerialization.JSONObjectWithData(outStr, options: [])
+            var boardsDictionary: NSDictionary = try NSJSONSerialization.JSONObjectWithData(data, options: NSJSONReadingOptions.MutableContainers) as! NSDictionary
+            
+            //let json = try NSJSONSerialization.JSONObjectWithData(data, options: .AllowFragments)
+            print(boardsDictionary)
+            print(boardsDictionary["lat"]!)
             /*
             if let blogs = json["blogs"] as? [[String: AnyObject]] {
             for blog in blogs {
@@ -225,11 +227,9 @@ class ViewController: UIViewController, MKMapViewDelegate, CLLocationManagerDele
             }
             }
             }*/
-            if let Json = json as? Dictionary<String, AnyObject> {
-            if let latitude = Json["lat"]  as? Int {
-                print(latitude)
-            }
-            }
+           
+
+            
             
             //if let points = json["numPoints"] as? [String]{
             //    print("in 3")
