@@ -22,18 +22,78 @@ class ViewController: UIViewController, MKMapViewDelegate, CLLocationManagerDele
     
 
     
+    @IBAction func EditButton(sender: UIButton) {
+        
+        var idText : String = String()
+        var adjText : String = String()
+        
+        let editAlert = UIAlertController(title: "", message: "Enter the waypoint id number you'd like to edit", preferredStyle: UIAlertControllerStyle.Alert)
+        
+        editAlert.addTextFieldWithConfigurationHandler({ (textField) -> Void in
+            textField.text = "Example: 1"
+        })
+        
+        editAlert.addAction(UIAlertAction(title: "OK", style: .Default, handler: { (action) -> Void in
+            
+            let textField = editAlert.textFields![0] as UITextField
+            print("Text field: \(textField.text)")
+            idText = textField.text!
+            
+            //adjacency edit alert
+            let adjAlert = UIAlertController(title: "", message: "Enter the adjacent waypoint numbers in a comma separated list.", preferredStyle: UIAlertControllerStyle.Alert)
+            
+            adjAlert.addTextFieldWithConfigurationHandler({ (textField) -> Void in
+                textField.text = "Example: 2,3"
+            })
+            
+            adjAlert.addAction(UIAlertAction(title: "OK", style: .Default, handler: { (action) -> Void in
+                let adjtextField = adjAlert.textFields![0] as UITextField
+                print("Text field: \(adjtextField.text)")
+                adjText = adjtextField.text!
+                print("idText: \(idText) , adjText: \(adjText)")
+                self.editAdjListNetworkConnection(idText, adjList: adjText)
+            }))
+            
+            self.presentViewController(adjAlert, animated: true, completion: nil)
+            //end of adj edit alert
+            
+         
+        }))
+        
+        self.presentViewController(editAlert, animated: true, completion: nil)
+        
+        //print("idText: \(idText) , adjText: \(adjText)")
+        
+        
+    }
     
     //BUTTONS
     @IBAction func AddButton(sender: UIButton) {
         
-        let alert2 = UIAlertController(title: "", message: "Added Waypoint", preferredStyle: UIAlertControllerStyle.Alert)
         
-        print("Current Location: \(currentLat) , \(currentLong)")
+        let alert2 = UIAlertController(title: "", message: "Adding a waypoint at your current location. Enter the adjacent waypoints in a comma separated list", preferredStyle: UIAlertControllerStyle.Alert)
+        
+        alert2.addTextFieldWithConfigurationHandler({ (textField) -> Void in
+            textField.text = "Example: 1,3"
+        })
+        
+        alert2.addAction(UIAlertAction(title: "OK", style: .Default, handler: { (action) -> Void in
+            let textField = alert2.textFields![0] as UITextField
+            print("Text field: \(textField.text)")
+            //self.addWaypointNetworkConnection(textField.text!)
+            self.getWaypoints()
+        }))
+        
+        self.presentViewController(alert2, animated: true, completion: nil)
+        
+        
+        /*print("Current Location: \(currentLat) , \(currentLong)")
         //self.addWaypointNetworkConnection()
-        self.getWaypoints()
+        
          alert2.addAction(UIAlertAction(title: "OK", style: UIAlertActionStyle.Default, handler: nil))
         
             self.presentViewController(alert2, animated: true, completion: nil)
+        */
         
     }
 
@@ -125,6 +185,18 @@ class ViewController: UIViewController, MKMapViewDelegate, CLLocationManagerDele
         print(outStr)
         
     }*/
+    
+    func displayWaypoints( lat: Double, long: Double, num: Int) {
+        
+        let waypoint = CLLocationCoordinate2DMake(lat, long)
+        let pinDrop = MKPointAnnotation()
+        pinDrop.coordinate = waypoint
+        pinDrop.title = "\(num)"
+        mapView.addAnnotation(pinDrop)
+    }
+    
+    
+    
     func getWaypoints(){
         let addr = "moore11.cs.purdue.edu"
         let port = 3112
@@ -182,7 +254,7 @@ class ViewController: UIViewController, MKMapViewDelegate, CLLocationManagerDele
         var i = 1;
         var numPoints = 10;
         
-        while ( i <= 10)
+        while ( i <= 15)
         {
             print("here \(i)")
         var readByte :UInt8 = 0
@@ -214,11 +286,23 @@ class ViewController: UIViewController, MKMapViewDelegate, CLLocationManagerDele
             
             let data: NSData = outStr.dataUsingEncoding(NSUTF8StringEncoding, allowLossyConversion: false)!
             //let json = try NSJSONSerialization.JSONObjectWithData(outStr, options: [])
-            var boardsDictionary: NSDictionary = try NSJSONSerialization.JSONObjectWithData(data, options: NSJSONReadingOptions.MutableContainers) as! NSDictionary
+            let boardsDictionary: NSDictionary = try NSJSONSerialization.JSONObjectWithData(data, options: NSJSONReadingOptions.MutableContainers) as! NSDictionary
             
             //let json = try NSJSONSerialization.JSONObjectWithData(data, options: .AllowFragments)
             print(boardsDictionary)
-            print(boardsDictionary["lat"]!)
+            print(boardsDictionary["numPoints"]!)
+            let pinLatString = String(boardsDictionary["lat"]!)
+            let pinLongString = String(boardsDictionary["longe"]!)
+            let pinNumString = String(boardsDictionary["id"]!)
+            
+            let pinLat = Double(pinLatString)
+            let pinLong = Double(pinLongString)
+            let pinNum = Int(pinNumString)
+            
+            //print("pinLat: \(pinLat) , pinLong: \(pinLong) , pinNum: \(pinNum)")
+            self.displayWaypoints(pinLat!, long: pinLong!, num: pinNum!)
+            
+            
             /*
             if let blogs = json["blogs"] as? [[String: AnyObject]] {
             for blog in blogs {
@@ -259,8 +343,62 @@ class ViewController: UIViewController, MKMapViewDelegate, CLLocationManagerDele
     
     }
     
+    func editAdjListNetworkConnection(idNum : String, adjList : String){
+        let addr = "moore11.cs.purdue.edu"
+        let port = 3112
+        
+        //       var host :NSHost = NSHost(address: addr)
+        var inp :NSInputStream?
+        var out :NSOutputStream?
+        
+        NSStream.getStreamsToHostWithName(addr, port: port, inputStream: &inp, outputStream: &out)
+        
+        //let inputStream = inp!
+        let outputStream = out!
+        
+        //inputStream.scheduleInRunLoop(.mainRunLoop(), forMode: NSDefaultRunLoopMode)
+        outputStream.scheduleInRunLoop(.mainRunLoop(), forMode: NSDefaultRunLoopMode)
+        
+        //inputStream.open()
+        outputStream.open()
+        
+        print("11\n")
+        let dataStr = "11\n" //change to add waypoint number
+        
+        outputStream.write(dataStr , maxLength: 3)
+        
+        //json build test
+        let validDictionary = [
+            "id": idNum,
+            "adjID": adjList
+        ]
+        //print("valid Dictionary \(validDictionary)")
+        
+        
+        if NSJSONSerialization.isValidJSONObject(validDictionary) { // True
+            do {
+                //let rawData = try NSJSONSerialization.dataWithJSONObject(validDictionary, options: .PrettyPrinted)
+                //print(rawData)
+                //outputStream.write(UnsafePointer<UInt8>(rawData.bytes) , maxLength: 1024)
+                //print("Waypoint Addition at - \(validDictionary)")
+                let send = "\(validDictionary)\n"
+                outputStream.write(send, maxLength:1024);
+                let newLine = "\n"
+                outputStream.write(newLine , maxLength: 1)
+                //print("\n")
+            } catch {
+                // Handle Error
+            }
+            
+        }else{
+            print("Invalid JSON data")
+            
+        }
+
+        
+    }
     
-    func addWaypointNetworkConnection(){
+    func addWaypointNetworkConnection(adjList : String){
         let addr = "moore11.cs.purdue.edu"
         let port = 3112
         
@@ -287,7 +425,8 @@ class ViewController: UIViewController, MKMapViewDelegate, CLLocationManagerDele
         //json build test
         let validDictionary = [
             "lat": "\(currentLat)",
-            "longe": "\(currentLong)"
+            "longe": "\(currentLong)",
+            "adjID": adjList
         ]
         //print("valid Dictionary \(validDictionary)")
         
@@ -356,7 +495,7 @@ class ViewController: UIViewController, MKMapViewDelegate, CLLocationManagerDele
         //json build test
         let validDictionary = [
             "lat": "\(currentLat)",
-            "longe": "\(currentLong)"
+            "longe": "\(currentLong)",
         ]
         
         
