@@ -67,21 +67,27 @@ class ViewController: UIViewController, MKMapViewDelegate, CLLocationManagerDele
         
     }
     
+    
+    @IBAction func ViewButton(sender: UIButton) {
+        
+        self.getWaypoints()
+    }
+    
     //BUTTONS
     @IBAction func AddButton(sender: UIButton) {
         
         
-        let alert2 = UIAlertController(title: "", message: "Adding a waypoint at your current location. Enter the adjacent waypoints in a comma separated list", preferredStyle: UIAlertControllerStyle.Alert)
+        let alert2 = UIAlertController(title: "", message: "Adding a waypoint at your current location.", preferredStyle: UIAlertControllerStyle.Alert)
         
-        alert2.addTextFieldWithConfigurationHandler({ (textField) -> Void in
-            textField.text = "Example: 1,3"
-        })
+        //alert2.addTextFieldWithConfigurationHandler({ (textField) -> Void in
+        //    textField.text = "Example: 1,3"
+        //})
         
         alert2.addAction(UIAlertAction(title: "OK", style: .Default, handler: { (action) -> Void in
-            let textField = alert2.textFields![0] as UITextField
-            print("Text field: \(textField.text)")
-            //self.addWaypointNetworkConnection(textField.text!)
-            self.getWaypoints()
+            //let textField = alert2.textFields![0] as UITextField
+            //print("Text field: \(textField.text)")
+            self.addWaypointNetworkConnection()
+            //self.getWaypoints()
         }))
         
         self.presentViewController(alert2, animated: true, completion: nil)
@@ -116,9 +122,6 @@ class ViewController: UIViewController, MKMapViewDelegate, CLLocationManagerDele
                 //ADD CODE TO SEND TO SERVER
                 self.initNetworkCommunication()
                 
-                self.dropAPin()
-                
-                self.successfulOrder()
                 
             case .Cancel:
                 print("cancel")
@@ -129,69 +132,26 @@ class ViewController: UIViewController, MKMapViewDelegate, CLLocationManagerDele
         }))
     }
     
-    /*
-    func initNetworkCommunication(){
-        let addr = "127.0.0.1"
-        let port = 9091
-        
-        //       var host :NSHost = NSHost(address: addr)
-        var inp :NSInputStream?
-        var out :NSOutputStream?
-        
-        NSStream.getStreamsToHostWithName(addr, port: port, inputStream: &inp, outputStream: &out)
-        
-        let inputStream = inp!
-        let outputStream = out!
-        
-        inputStream.scheduleInRunLoop(.mainRunLoop(), forMode: NSDefaultRunLoopMode)
-        outputStream.scheduleInRunLoop(.mainRunLoop(), forMode: NSDefaultRunLoopMode)
-        
-        inputStream.open()
-        outputStream.open()
-        
-        //var readByte :UInt8 = 0
-        //while inputStream.hasBytesAvailable {
-        //    inputStream.read(&readByte, maxLength: 1)
-        //}
-        
-        let st = "foo bar\n"
-        //let data = string.dataUsingEncoding(NSUTF8StringEncoding, allowLossyConversion: false)!
-        //let bytesWritten = outputStream.write(UnsafePointer(data.bytes), maxLength: data.length)
-        
-        //var writeByte :UInt8 = 11
-        //var buffer = [UInt8](count: 8, repeatedValue: 1)
-        
-        // buffer is a UInt8 array containing bytes of the string "Jonathan Yaniv.".
-        
-        outputStream.write(st, maxLength: 8)
-        
-        var readByte :UInt8 = 0
-        var x = true
-        var i = 0
-        var outStr = ""
-        while x {
-        while inputStream.hasBytesAvailable {
-            //print(i)
-            inputStream.read(&readByte, maxLength: 1)
-            
-            let u = UnicodeScalar(readByte)
-            let char = String(u)
-            //print(char)
-            outStr += char
-            i++
-            x = false
-        }
-        }
-        print(outStr)
-        
-    }*/
+    
+    func displayDelivery(Deliverylat: Double, Deliverylong: Double)
+    {
+        let waypoint = CLLocationCoordinate2DMake(Deliverylat, Deliverylong)
+        let pinDrop = MKPointAnnotation()
+        pinDrop.coordinate = waypoint
+        pinDrop.title = "Delivery Drop-Off"
+        mapView.addAnnotation(pinDrop)
+    }
+    
+
     
     func displayWaypoints( lat: Double, long: Double, num: Int) {
         
         let waypoint = CLLocationCoordinate2DMake(lat, long)
         let pinDrop = MKPointAnnotation()
         pinDrop.coordinate = waypoint
-        pinDrop.title = "\(num)"
+        
+        pinDrop.title = "Waypoint ID : \(num)"
+        pinDrop.subtitle = "\(lat) , \(long)"
         mapView.addAnnotation(pinDrop)
     }
     
@@ -221,40 +181,10 @@ class ViewController: UIViewController, MKMapViewDelegate, CLLocationManagerDele
         
         outputStream.write(dataStr , maxLength: 3)
         
-        //json build test
-        /*let validDictionary = [
-            "lat": "\(currentLat)",
-            "longe": "\(currentLong)"
-        ]
-        //print("valid Dictionary \(validDictionary)")
-        
-        
-        if NSJSONSerialization.isValidJSONObject(validDictionary) { // True
-            do {
-                //let rawData = try NSJSONSerialization.dataWithJSONObject(validDictionary, options: .PrettyPrinted)
-                //print(rawData)
-                //outputStream.write(UnsafePointer<UInt8>(rawData.bytes) , maxLength: 1024)
-                print("Waypoint Addition at - \(validDictionary)")
-                let send = "\(validDictionary)\n"
-                outputStream.write(send, maxLength:1024);
-                let newLine = "\n"
-                outputStream.write(newLine , maxLength: 1)
-                //print("\n")
-            } catch {
-                // Handle Error
-            }
-            
-        }else{
-            print("Invalid JSON data")
-            
-        }*/
-        
-        //inputStream.close()
-        //outputStream.close()
         var i = 1;
-        var numPoints = 10;
+        var numPoints = 1;
         
-        while ( i <= 15)
+        while ( i <= numPoints)
         {
             print("here \(i)")
         var readByte :UInt8 = 0
@@ -291,10 +221,12 @@ class ViewController: UIViewController, MKMapViewDelegate, CLLocationManagerDele
             //let json = try NSJSONSerialization.JSONObjectWithData(data, options: .AllowFragments)
             print(boardsDictionary)
             print(boardsDictionary["numPoints"]!)
+            let strnumPoints = String(boardsDictionary["numPoints"]!)
             let pinLatString = String(boardsDictionary["lat"]!)
             let pinLongString = String(boardsDictionary["longe"]!)
             let pinNumString = String(boardsDictionary["id"]!)
             
+            numPoints =  Int(strnumPoints)!
             let pinLat = Double(pinLatString)
             let pinLong = Double(pinLongString)
             let pinNum = Int(pinNumString)
@@ -302,35 +234,6 @@ class ViewController: UIViewController, MKMapViewDelegate, CLLocationManagerDele
             //print("pinLat: \(pinLat) , pinLong: \(pinLong) , pinNum: \(pinNum)")
             self.displayWaypoints(pinLat!, long: pinLong!, num: pinNum!)
             
-            
-            /*
-            if let blogs = json["blogs"] as? [[String: AnyObject]] {
-            for blog in blogs {
-            if let name = blog["name"] as? String {
-            names.append(name)
-            }
-            }
-            }*/
-           
-
-            
-            
-            //if let points = json["numPoints"] as? [String]{
-            //    print("in 3")
-            //    print("points: \(points)")
-            //}
-            
-            
-            /*if let item = json as? NSArray{
-                print("in 1")
-                if let jsItem = item[0] as? NSDictionary{
-                    print("in 2")
-                    if let points = jsItem["numPoints"] as? NSDictionary{
-                        print("in 3")
-                        print("points: \(points)")
-                    }
-                }
-            }*/
             
             
         } catch {
@@ -398,7 +301,8 @@ class ViewController: UIViewController, MKMapViewDelegate, CLLocationManagerDele
         
     }
     
-    func addWaypointNetworkConnection(adjList : String){
+    
+    func addWaypointNetworkConnection(){
         let addr = "moore11.cs.purdue.edu"
         let port = 3112
         
@@ -425,8 +329,8 @@ class ViewController: UIViewController, MKMapViewDelegate, CLLocationManagerDele
         //json build test
         let validDictionary = [
             "lat": "\(currentLat)",
-            "longe": "\(currentLong)",
-            "adjID": adjList
+            "longe": "\(currentLong)"
+            //"adjID": adjList
         ]
         //print("valid Dictionary \(validDictionary)")
         
@@ -476,19 +380,7 @@ class ViewController: UIViewController, MKMapViewDelegate, CLLocationManagerDele
         inputStream.open()
         outputStream.open()
         
-        //var readByte :UInt8 = 0
-        //while inputStream.hasBytesAvailable {
-        //    inputStream.read(&readByte, maxLength: 1)
-        //}
-        
         let dataStr = "13\n"
-        //let data = string.dataUsingEncoding(NSUTF8StringEncoding, allowLossyConversion: false)!
-        //let bytesWritten = outputStream.write(UnsafePointer(data.bytes), maxLength: data.length)
-        
-        //var writeByte :UInt8 = 10
-        //var buffer = [UInt8](count: 8, repeatedValue: 1)
-        
-        // buffer is a UInt8 array containing bytes of the string "Jonathan Yaniv.".
 
         outputStream.write(dataStr , maxLength: 3)
         
@@ -497,8 +389,6 @@ class ViewController: UIViewController, MKMapViewDelegate, CLLocationManagerDele
             "lat": "\(currentLat)",
             "longe": "\(currentLong)",
         ]
-        
-        
         
         if NSJSONSerialization.isValidJSONObject(validDictionary) { // True
             do {
@@ -521,61 +411,111 @@ class ViewController: UIViewController, MKMapViewDelegate, CLLocationManagerDele
             
         }
         
-        
 
-        //Output from server --- Commented out for testing
-        /*
         var readByte :UInt8 = 0
         var x = true
-        var i = 0
         var outStr = ""
         while x {
             while inputStream.hasBytesAvailable {
-                //print(i)
-                inputStream.read(&readByte, maxLength: 1)
-                
-                let u = UnicodeScalar(readByte)
-                
-                let char = String(u)
-                print(char)
-                
-                
-                outStr += char
-                i++
-                if (char == "\n"){
-                    x = false
-                    break
-                }
-                //x = false
+                    //print(i)
+            inputStream.read(&readByte, maxLength: 1)
+                    
+            let u = UnicodeScalar(readByte)
+                    
+            let char = String(u)
+                    //print(char)
+                    
+                    
+            outStr += char
+                    //i++
+            if (char == "\n"){
+                x = false
+                break
+            }
+                    //x = false
             }
         }
-        print(outStr)
-       
+        print("outStr: \(outStr)")
+        
+        if(outStr != "Error, no available delivery rover\n"){
+            print("AVAILABLE ROVER")
+            
+            do {
+                
+                let data: NSData = outStr.dataUsingEncoding(NSUTF8StringEncoding, allowLossyConversion: false)!
+                //let json = try NSJSONSerialization.JSONObjectWithData(outStr, options: [])
+                let boardsDictionary: NSDictionary = try NSJSONSerialization.JSONObjectWithData(data, options: NSJSONReadingOptions.MutableContainers) as! NSDictionary
+                
+                //let json = try NSJSONSerialization.JSONObjectWithData(data, options: .AllowFragments)
+                print(boardsDictionary)
+                print(boardsDictionary["numPoints"]!)
+                let pinLatString = String(boardsDictionary["lat"]!)
+                let pinLongString = String(boardsDictionary["longe"]!)
+                
+                let pinLat = Double(pinLatString)
+                let pinLong = Double(pinLongString)
+                
+                //print("pinLat: \(pinLat) , pinLong: \(pinLong) , pinNum: \(pinNum)")
+                self.displayDelivery(pinLat!, Deliverylong: pinLong!)
+                
+                
+                
+            } catch {
+                print("error serializing JSON: \(error)")
+            }
+            
+            self.successfulOrder()
+
+        }
+        else
+        {
+            print("NO ROVER AVAIL")
+            
+            self.unsuccessfulOrder()
+        }
+        /*
+        self.dropAPin()
+        
+        self.successfulOrder()
         
         do {
-            let json = try NSJSONSerialization.JSONObjectWithData(outStr.dataUsingEncoding(NSUTF8StringEncoding)!, options: .AllowFragments)
-            print(json)
-            /*
-            if let blogs = json["blogs"] as? [[String: AnyObject]] {
-                for blog in blogs {
-                    if let name = blog["name"] as? String {
-                        names.append(name)
-                    }
-                }
-            }*/
+                
+            let data: NSData = outStr.dataUsingEncoding(NSUTF8StringEncoding, allowLossyConversion: false)!
+                //let json = try NSJSONSerialization.JSONObjectWithData(outStr, options: [])
+            let boardsDictionary: NSDictionary = try NSJSONSerialization.JSONObjectWithData(data, options: NSJSONReadingOptions.MutableContainers) as! NSDictionary
+                
+                //let json = try NSJSONSerialization.JSONObjectWithData(data, options: .AllowFragments)
+            print(boardsDictionary)
+            print(boardsDictionary["numPoints"]!)
+            let pinLatString = String(boardsDictionary["lat"]!)
+            let pinLongString = String(boardsDictionary["longe"]!)
             
-        } catch {
-            print("error serializing JSON: \(error)")
-        }
-        
-        //print(names) // ["Bloxus test", "Manila Test"]
+            let pinLat = Double(pinLatString)
+            let pinLong = Double(pinLongString)
+                
+                //print("pinLat: \(pinLat) , pinLong: \(pinLong) , pinNum: \(pinNum)")
+            self.displayDelivery(pinLat!, Deliverylong: pinLong!)
+            
+                
+                
+            } catch {
+                print("error serializing JSON: \(error)")
+            }
         */
-        
+    
+    
     }
     
+    func unsuccessfulOrder(){
+        
+        let alert = UIAlertController(title: "", message: "There are no current rovers available for delivery. Please try again later.", preferredStyle: UIAlertControllerStyle.Alert)
+        
+        alert.addAction(UIAlertAction(title: "OK", style: UIAlertActionStyle.Default, handler: nil))
+        
+        self.presentViewController(alert, animated: true, completion: nil)
+    }
     
-    
-    
+
     func successfulOrder() {
         //Second alert message -- Successful Order
         let alert = UIAlertController(title: "", message: "Your order is on it's way! Head to the dropped pin!", preferredStyle: UIAlertControllerStyle.Alert)
@@ -633,7 +573,7 @@ class ViewController: UIViewController, MKMapViewDelegate, CLLocationManagerDele
         
         let locValue:CLLocationCoordinate2D = manager.location!.coordinate
         
-        print("locations =  latitude: \(locValue.latitude) longitude: \(locValue.longitude)")
+        //print("locations =  latitude: \(locValue.latitude) longitude: \(locValue.longitude)")
         
         
         
