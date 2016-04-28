@@ -437,7 +437,7 @@
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				INFOPLIST_FILE = MapView/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = com.example.MapView;
+				PRODUCT_BUNDLE_IDENTIFIER = com.example.MapView.XXX;
 				PRODUCT_NAME = Team12;
 				PROVISIONING_PROFILE = "";
 			};
@@ -451,7 +451,7 @@
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				INFOPLIST_FILE = MapView/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = com.example.MapView;
+				PRODUCT_BUNDLE_IDENTIFIER = com.example.MapView.XXX;
 				PRODUCT_NAME = Team12;
 				PROVISIONING_PROFILE = "";
 			};
