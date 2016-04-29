@@ -12,6 +12,7 @@ import CoreLocation
 
 var currentLat : String = String()
 var currentLong : String = String()
+var GPSFlag : Int = Int()
 
 class ViewController: UIViewController, MKMapViewDelegate, CLLocationManagerDelegate
 {
@@ -20,6 +21,17 @@ class ViewController: UIViewController, MKMapViewDelegate, CLLocationManagerDele
     let locationManager = CLLocationManager()
 
     
+    @IBAction func GPSbutton(sender: UIButton) {
+        //GPSFlag = 1;
+        while(true){
+            sleep(1);
+            /*
+            var currLatitude = self.locationManager.location?.coordinate.latitude
+            var currLongitude = self.locationManager.location?.coordinate.longitude
+            print("\(currLatitude) , \(currLongitude)")*/
+        }
+        
+    }
 
     
     @IBAction func EditButton(sender: UIButton) {
@@ -131,6 +143,63 @@ class ViewController: UIViewController, MKMapViewDelegate, CLLocationManagerDele
             }
         }))
     }
+    
+    
+   /* func GPSNetworkConnection(){
+        
+        
+        let addr = "moore11.cs.purdue.edu"
+        let port = 3112
+        
+        var inp :NSInputStream?
+        var out :NSOutputStream?
+        
+        NSStream.getStreamsToHostWithName(addr, port: port, inputStream: &inp, outputStream: &out)
+        
+        let outputStream = out!
+        
+        outputStream.scheduleInRunLoop(.mainRunLoop(), forMode: NSDefaultRunLoopMode)
+
+        outputStream.open()
+        
+        print("20\n")
+        let dataStr = "20\n" //send GPS number for server
+        
+        outputStream.write(dataStr , maxLength: 3)
+        
+        
+        while(true) {
+            //json build test
+            let validDictionary = [
+                "lat": "\(currentLat)",
+                "longe": "\(currentLong)"
+                //"adjID": adjList
+            ]
+            
+            sleep(1)
+            //print("Sending GPS location - \(validDictionary)")
+            
+            if NSJSONSerialization.isValidJSONObject(validDictionary) { // True
+                do {
+                    
+                    print("Sending GPS location - \(validDictionary)")
+                    let send = "\(validDictionary)\n"
+                    outputStream.write(send, maxLength: send.characters.count);
+                    //let newLine = "\n"
+                    //outputStream.write(newLine , maxLength: 1)
+                    
+                } catch {
+                    // Handle Error
+                }
+                
+            }else{
+                print("Invalid JSON data")
+                
+            }
+        }
+        
+    }*/
+    
     
     
     func displayDelivery(Deliverylat: Double, Deliverylong: Double)
@@ -385,33 +454,7 @@ class ViewController: UIViewController, MKMapViewDelegate, CLLocationManagerDele
         outputStream.write(dataStr , maxLength: 3)
         
         //json build test
-        let validDictionary = [
-            "lat": "\(currentLat)",
-            "longe": "\(currentLong)",
-        ]
-        
-        if NSJSONSerialization.isValidJSONObject(validDictionary) { // True
-            do {
-                //let rawData = try NSJSONSerialization.dataWithJSONObject(validDictionary, options: .PrettyPrinted)
-                //print(rawData)
-                //outputStream.write(UnsafePointer<UInt8>(rawData.bytes) , maxLength: 1024)
-                print("Valid Dictionary - \(validDictionary)")
-                let send = "\(validDictionary)\n"
-                print(send)
-                outputStream.write(send, maxLength:1024);
-                let newLine = "\n"
-                outputStream.write(newLine , maxLength: 1)
-                //print("\n")
-            } catch {
-                // Handle Error
-            }
-            
-        }else{
-            print("Invalid JSON data")
-            
-        }
-        
-
+        /* //INFORMATION RECEIVED FROM SERVER
         var readByte :UInt8 = 0
         var x = true
         var outStr = ""
@@ -472,7 +515,13 @@ class ViewController: UIViewController, MKMapViewDelegate, CLLocationManagerDele
             print("NO ROVER AVAIL")
             
             self.unsuccessfulOrder()
-        }
+        }*/ //end of input from server
+        
+        
+        
+        
+        
+        
         /*
         self.dropAPin()
         
@@ -579,13 +628,90 @@ class ViewController: UIViewController, MKMapViewDelegate, CLLocationManagerDele
         
         currentLat = "\(locValue.latitude)"
         currentLong = "\(locValue.longitude)"
+        
+        //print("\(currentLat) , \(currentLong)")
+        
+        
+        
+        //SEND GPS LOCATION TO SERVER
+        if(GPSFlag == 1){
+            
+            
+                //json build test
+                let validDictionary = [
+                    "lat": "\(currentLat)",
+                    "longe": "\(currentLong)"
+                    //"adjID": adjList
+                ]
+                
+                //sleep(1)
+                print("Sending GPS location - \(validDictionary)")
+            
+        }
+        /*
+            
+        
+            let addr = "moore11.cs.purdue.edu"
+            let port = 3112
+            
+            var inp :NSInputStream?
+            var out :NSOutputStream?
+            
+            NSStream.getStreamsToHostWithName(addr, port: port, inputStream: &inp, outputStream: &out)
+            
+            let outputStream = out!
+            
+            outputStream.scheduleInRunLoop(.mainRunLoop(), forMode: NSDefaultRunLoopMode)
+            
+            outputStream.open()
+            
+            print("20\n")
+            let dataStr = "20\n" //send GPS number for server
+            
+            outputStream.write(dataStr , maxLength: 3)
+            
+            
+            while(true) {
+                //json build test
+                let validDictionary = [
+                    "lat": "\(currentLat)",
+                    "longe": "\(currentLong)"
+                    //"adjID": adjList
+                ]
+                
+                sleep(1)
+                //print("Sending GPS location - \(validDictionary)")
+                //}
+                
+                if NSJSONSerialization.isValidJSONObject(validDictionary) { // True
+                    do {
+                        
+                        print("Sending GPS location - \(validDictionary)")
+                        let send = "\(validDictionary)\n"
+                        outputStream.write(send, maxLength: send.characters.count);
+                        //let newLine = "\n"
+                        //outputStream.write(newLine , maxLength: 1)
+                        
+                    } catch {
+                        // Handle Error
+                    }
+                    
+                }else{
+                    print("Invalid JSON data")
+                    
+                }
+            }
+            
+            
+        }
+        
     }
     
     
     func locationManager(manager: CLLocationManager, didFailWithError error: NSError)
     {
         print("Errors " + error.localizedDescription)
-    }
+    }*/
     
+    }
 }
-
