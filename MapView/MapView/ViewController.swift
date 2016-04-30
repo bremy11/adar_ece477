@@ -22,14 +22,77 @@ class ViewController: UIViewController, MKMapViewDelegate, CLLocationManagerDele
 
     
     @IBAction func GPSbutton(sender: UIButton) {
-        //GPSFlag = 1;
+        GPSFlag = 1;
+        
+        let addr = "moore11.cs.purdue.edu"
+        let port = 3112
+        
+        var inp :NSInputStream?
+        var out :NSOutputStream?
+        
+        NSStream.getStreamsToHostWithName(addr, port: port, inputStream: &inp, outputStream: &out)
+        
+        let outputStream = out!
+        
+        outputStream.scheduleInRunLoop(.mainRunLoop(), forMode: NSDefaultRunLoopMode)
+        
+        outputStream.open()
+        
+        print("20\n")
+        let dataStr = "20\n" //send GPS number for server
+        
+        outputStream.write(dataStr , maxLength: 3)
+        
+        
+        while(true) {
+            //json build test
+            //print("Sending GPS location - \(validDictionary)")
+            //}
+            self.locationManager.startUpdatingLocation()
+            
+            sleep(1)
+            self.locationManager.stopUpdatingLocation()
+            
+            var currLatitude = self.locationManager.location!.coordinate.latitude
+            var currLongitude = self.locationManager.location!.coordinate.longitude
+
+            let validDictionary = [
+                "lat": "\(currLatitude)",
+                "longe": "\(currLongitude)"
+                //"adjID": adjList
+            ]
+            print(validDictionary)
+            if NSJSONSerialization.isValidJSONObject(validDictionary) { // True
+                do {
+                    
+                    print("Sending GPS location - \(validDictionary)")
+                    let send = "\(validDictionary)\n"
+                    outputStream.write(send, maxLength: send.characters.count);
+                    
+                    //let newLine = "\n"
+                    //outputStream.write(newLine , maxLength: 1)
+                    
+                } catch {
+                    // Handle Error
+                }
+                
+            }else{
+                print("Invalid JSON data")
+                
+            }
+        }
+        /*
         while(true){
-            sleep(1);
-            /*
+            
+            self.locationManager.startUpdatingLocation()
+            
+            sleep(1)
+            self.locationManager.stopUpdatingLocation()
+            
             var currLatitude = self.locationManager.location?.coordinate.latitude
             var currLongitude = self.locationManager.location?.coordinate.longitude
-            print("\(currLatitude) , \(currLongitude)")*/
-        }
+            //print("\(currLatitude) , \(currLongitude)")
+        }*/
         
     }
 
@@ -454,6 +517,35 @@ class ViewController: UIViewController, MKMapViewDelegate, CLLocationManagerDele
         outputStream.write(dataStr , maxLength: 3)
         
         //json build test
+        let validDictionary = [
+            "lat": "\(currentLat)",
+            "longe": "\(currentLong)"
+        ]
+        //print("valid Dictionary \(validDictionary)")
+        
+        
+        if NSJSONSerialization.isValidJSONObject(validDictionary) { // True
+            do {
+                //let rawData = try NSJSONSerialization.dataWithJSONObject(validDictionary, options: .PrettyPrinted)
+                //print(rawData)
+                //outputStream.write(UnsafePointer<UInt8>(rawData.bytes) , maxLength: 1024)
+                print("Sent delivery to- \(validDictionary)")
+                let send = "\(validDictionary)\n"
+                outputStream.write(send, maxLength:1024);
+                let newLine = "\n"
+                outputStream.write(newLine , maxLength: 1)
+                //print("\n")
+            } catch {
+                // Handle Error
+            }
+            
+        }else{
+            print("Invalid JSON data")
+            
+        }
+
+        
+        //json build test
         /* //INFORMATION RECEIVED FROM SERVER
         var readByte :UInt8 = 0
         var x = true
@@ -582,7 +674,6 @@ class ViewController: UIViewController, MKMapViewDelegate, CLLocationManagerDele
         pinDrop1.coordinate = waypoint1
         pinDrop1.title = "Waypoint 1"  //this box needs to be edited -- ID: ______ <- edit this
         mapView.addAnnotation(pinDrop1)
-        
     }
     
     override func viewDidLoad() {
@@ -591,7 +682,8 @@ class ViewController: UIViewController, MKMapViewDelegate, CLLocationManagerDele
         
         self.locationManager.delegate = self
         
-        self.locationManager.desiredAccuracy = kCLLocationAccuracyBest
+        //self.locationManager.desiredAccuracy = kCLLocationAccuracyBest
+        self.locationManager.desiredAccuracy = kCLLocationAccuracyBestForNavigation
         
         self.locationManager.requestWhenInUseAuthorization()
         
@@ -634,7 +726,7 @@ class ViewController: UIViewController, MKMapViewDelegate, CLLocationManagerDele
         
         
         //SEND GPS LOCATION TO SERVER
-        if(GPSFlag == 1){
+        /*if(GPSFlag == 1){
             
             
                 //json build test
@@ -645,9 +737,9 @@ class ViewController: UIViewController, MKMapViewDelegate, CLLocationManagerDele
                 ]
                 
                 //sleep(1)
-                print("Sending GPS location - \(validDictionary)")
+                //print("Sending GPS location - \(validDictionary)")
             
-        }
+        }*/
         /*
             
         

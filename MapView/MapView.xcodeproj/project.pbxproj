@@ -222,7 +222,7 @@
 				TargetAttributes = {
 					A69F580D1C67D2B600FE0160 = {
 						CreatedOnToolsVersion = 7.1.1;
-						DevelopmentTeam = LXRG2Z85TX;
+						DevelopmentTeam = 2D87AK85WG;
 					};
 					A69F58211C67D2B600FE0160 = {
 						CreatedOnToolsVersion = 7.1.1;
@@ -437,7 +437,7 @@
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				INFOPLIST_FILE = MapView/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = com.example.MapView.XXX;
+				PRODUCT_BUNDLE_IDENTIFIER = com.example.MapView;
 				PRODUCT_NAME = Team12;
 				PROVISIONING_PROFILE = "";
 			};
@@ -451,7 +451,7 @@
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				INFOPLIST_FILE = MapView/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = com.example.MapView.XXX;
+				PRODUCT_BUNDLE_IDENTIFIER = com.example.MapView;
 				PRODUCT_NAME = Team12;
 				PROVISIONING_PROFILE = "";
 			};

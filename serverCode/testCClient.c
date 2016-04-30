@@ -8,7 +8,7 @@
 #include <sys/socket.h>
  
 #define MAXRCVLEN 500
-#define PORTNUM 3112
+#define PORTNUM 3111
 #define IP_ADDR "128.10.12.141"
 
 
@@ -31,7 +31,7 @@ int main(int argc, char *argv[])
   	
 
 
-   char* msg = "2\n";
+   char* msg = "3\n";
 
    char* msg2 = "45,46\n";
    char* msg3 = "45,47\n";
