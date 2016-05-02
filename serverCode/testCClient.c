@@ -10,7 +10,8 @@
 #define MAXRCVLEN 500
 #define PORTNUM 3111
 #define IP_ADDR "128.10.12.141"
-
+//#define IP_ADDR "10.132.122.202"
+//#define PORTNUM 8080
 
  //https://en.wikibooks.org/wiki/C_Programming/Networking_in_UNIX
 int main(int argc, char *argv[])

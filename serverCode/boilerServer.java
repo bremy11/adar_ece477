@@ -52,8 +52,11 @@ import dijkstra.*;
 
 public class boilerServer 
 {
+    
+   // final static int port = 3112;
+   
     final static int port = 3112;
-    //arbitrarily selected port
+   //arbitrarily selected port
     
     /**
      *Usage is useless now that we will be using JSON objects
@@ -102,12 +105,11 @@ class ThreadedHandler implements Runnable
     static Semaphore availableRover = new Semaphore(0);
     static Semaphore lockGlobals = new Semaphore(1); //used to lock global variables
     static Semaphore availableRequest = new Semaphore(0); 
-    static float msgLat;
-    static float msgLonge;
-    static float roverLonge;
-    static float roverLat;
+    static double msgLat;
+    static double msgLonge;
+    static double roverLonge;
+    static double roverLat;
     static int atLocation;
-
     /*public ThreadedHandler(Socket newSoc, int iteration, Semaphore availableRover, Semaphore lockGlobals, 
         float msgLat, float msgLonge,float roverLonge,  float roverLat, int atLocation)*/
     public ThreadedHandler(Socket newSoc, int iteration){ 
@@ -115,10 +117,19 @@ class ThreadedHandler implements Runnable
         runNum = iteration;
 
     }
-    
-    public static double distFrom(float lat1, float lng1, float lat2, float lng2) {
+   public static double gpsConvert(double deg){
+	deg = Math.abs(deg);
+	if(deg > 90){
+		return Math.floor(deg/100.0)+(Math.floor(deg%100.0)/60.0)+( (deg%1)*100.0/360.0);
+   	}
+   return deg; 
+   }
+    public static double distFrom(double lat1, double lng1, double lat2, double lng2) {
         //http://stackoverflow.com/questions/837872/calculate-distance-in-meters-when-you-know-longitude-and-latitude-in-java
-        
+    	lat1 = gpsConvert(lat1);
+	lat2 = gpsConvert(lat2);
+	lng1 = gpsConvert(lng1);
+	lng2 = gpsConvert(lng2);
         double earthRadius = 6371000; //meters
         double dLat = Math.toRadians(lat2-lat1);
         double dLng = Math.toRadians(lng2-lng1);
@@ -150,7 +161,6 @@ class ThreadedHandler implements Runnable
     }
 
     void sendWaypointPath(PrintWriter out) {
-        
         Connection conn=null;
         try
         { 
@@ -169,9 +179,9 @@ class ThreadedHandler implements Runnable
                 numPoints = r1.getString(1);
             }
             
-            int waypointSize = r2.getFetchSize();
-            EdgeWeightedDigraph wayPoints = new EdgeWeightedDigraph(waypointSize+2);
-            
+           // int waypointSize = r2.getFetchSize();
+            int waypointSize =Integer.parseInt(numPoints)+1; 
+	    EdgeWeightedDigraph wayPoints = new EdgeWeightedDigraph(waypointSize+2);
             int sourceID = waypointSize;
             int destID = waypointSize+1;
             //id converted to index
@@ -179,40 +189,50 @@ class ThreadedHandler implements Runnable
             HashMap<Integer,Integer> idToIndex = new HashMap();
             int[] indexToId = new int[waypointSize];
             //int[] idList = new int[waypointSize];
-            float[] longeList = new float[waypointSize];
-            float[] latList = new float[waypointSize];
+            double[] longeList = new double[waypointSize+2];
+            double[] latList = new double[waypointSize+2];
             String[] adjIdList = new String[waypointSize];
             
             //source and sink coordinates
             
-            float longeSource= 45;
-            float latSource = 43;
-            float longeDest= 45;
-            float latDest= 47;
+            double longeSource= 45;
+            double latSource = 43;
+            double longeDest= 45;
+            double latDest= 47;
 
-
+	   longeSource = gpsConvert(roverLonge);
+	   latSource = gpsConvert(roverLat);
+	longeDest = gpsConvert(msgLonge);
+	latDest = gpsConvert(msgLat);
+	System.out.println("longeDest= "+longeDest+" latDest= "+latDest);
+	
+	latList[sourceID] = latSource;
+	latList[destID] = latDest;
+	longeList[sourceID] =longeSource;
+	longeList[destID] = longeDest;
             int i = 0;
-            while(r2.next()) 
+            
+	    while(r2.next()) 
             {
                 //two way, handles discrpancies/deleted waypoints
                 indexToId[i] = r2.getInt(1);
                 idToIndex.put(indexToId[i], i);
                 
-                longeList[i] = Float.parseFloat(r2.getString(2));
-                latList[i] = Float.parseFloat(r2.getString(3));
-                i++;
+                longeList[i] = gpsConvert(Double.parseDouble(r2.getString(2)));
+                latList[i] = gpsConvert(Double.parseDouble(r2.getString(3)));
+                adjIdList[i] = r2.getString(4);
+		i++;
             }
-            
             int id;
             int adj;
             double dist;
             double distFromSource;
             double distToDest;
             
-            float lat1 = 0;
-            float lng1= 0;
-            float lat2= 0;
-            float lng2= 0;
+            double lat1 = 0;
+            double lng1= 0;
+            double lat2= 0;
+            double lng2= 0;
             
             double shortDistDest = 999999999;
             int shortDistDestId = -1;
@@ -222,10 +242,17 @@ class ThreadedHandler implements Runnable
             for (i = 0; i < waypointSize; i++)
             {
                 //id = indexToId.get(i);
-                List<String> items = Arrays.asList(adjIdList[i].split("\\s*,\\s*"));
-                
-                for (String temp : items){
-                    int adjCur = idToIndex.get(Integer.parseInt(temp));
+		//
+		List<String> items;
+		if (adjIdList[i].contains(",")){
+                 items = Arrays.asList(adjIdList[i].split("\\s*,\\s*"));
+                }else {
+		
+		items = Arrays.asList(adjIdList[i]);	
+		}
+                for (String temp : items){ 
+		 // System.out.println("adj: "+temp); 
+		   int adjCur = idToIndex.get(Integer.parseInt(temp));
                     
                     lat1 = latList[i];
                     lng1 = longeList[i];
@@ -233,7 +260,7 @@ class ThreadedHandler implements Runnable
                     lng2 = longeList[adjCur];
                     
                     dist = distFrom(lat1, lng1, lat2, lng2);
-                    
+                  // System.out.println(i+", "+adjCur+", "+dist); 
                     wayPoints.addEdge(new DirectedEdge(i, adjCur, dist));
                 }
                 //need to find points closest to dest and source for all points
@@ -251,6 +278,7 @@ class ThreadedHandler implements Runnable
                     shortDistDest = distToDest;
                     shortDistDestId = i;
                 }
+		System.out.println("index: "+i+" distFromSource: "+distFromSource+" distToDest: "+ distToDest);
             }
 
             if (shortDistSourceId == -1 || shortDistDest == -1)
@@ -259,33 +287,49 @@ class ThreadedHandler implements Runnable
             }
 
             wayPoints.addEdge(new DirectedEdge(sourceID, shortDistSourceId, shortDistSource));
-            wayPoints.addEdge(new DirectedEdge(i, shortDistDestId, shortDistDest));
+            wayPoints.addEdge(new DirectedEdge(shortDistSourceId, destID, shortDistDest));
+	// wayPoints.addEdge(new DirectedEdge(sourceID, destID, .5));
+
 
             //close the sql quirres
             r1.close();
             r2.close();
-           
+          System.out.println(wayPoints);
             DijkstraSP sp = new DijkstraSP(wayPoints, sourceID);
-            StringBuilder message = new StringBuilder();
             
+            StringBuilder message = new StringBuilder();
             if (sp.hasPathTo(destID)) {
-                message.append('{');
-                message.append(numPoints);
-                for (DirectedEdge x : sp.pathTo(destID))
+                message.append('$');
+                int pointCount = 0;
+		for (DirectedEdge x : sp.pathTo(destID))
+		{
+			pointCount++;
+		}
+		message.append(pointCount-1);
+                int tempPoint=0;
+		for (DirectedEdge x : sp.pathTo(destID))
                 {
+		    if (tempPoint < (pointCount-1)){
                     message.append('{');
-                    message.append(Float.toString(longeList[x.to()]));
-                    message.append(',');
-                    message.append(Float.toString(latList[x.to()]));
+                    //message.append(Double.toString(longeList[x.to()]));
+                    message.append(Double.toString(longeDest));
+		    message.append(',');
+		    message.append(Double.toString(latDest));
+                    //message.append(Double.toString(latList[x.to()]));
                     message.append('}');
+		    }
+		    tempPoint++;
                 }
-                message.append('}');   
+                message.append('}'); 
+		System.out.println(message+"\n");
+		out.println(message);
             }
             else {
                 throw new Exception("path not connected");
             }
         }catch (Exception e) {
             System.out.println(e.toString());
+	    e.printStackTrace();
             out.println(e.toString());
         }finally
         {
@@ -309,24 +353,33 @@ class ThreadedHandler implements Runnable
             String[] splitInput;
             System.out.println("waiting for request");
             availableRover.release();
-            availableRequest.acquire();//wait for available request
+           
+	    //		NOTE: uncomment the request aquire 
+	    availableRequest.acquire();//wait for available request
             System.out.println("rover accepted request");
 
-            out.println("2,45.0,45.0,45.0,46.0");
+           // out.println("2,45.0,45.0,45.0,46.0");
             //send shrotest path
             while (true)
             {
                 if(in.hasNextLine())
                 {
                     request=in.nextLine();
+		    
+		    System.out.println(request);
                     splitInput = request.split(",");
+		    while( splitInput.length !=2){
+			request=in.nextLine();
+		    	 splitInput = request.split(",");
+		    	
+		    }
                     if (splitInput.length ==1 && splitInput[0].equals("1"))
                     {
                         //rover at location
                         System.out.println("rover at location");
-                        lockGlobals.acquire();
+                        //lockGlobals.acquire();
                         atLocation = 1;
-                        lockGlobals.release();
+                        //lockGlobals.release();
                         availableRover.release();//increment semaphore, rover available
                         break;
                     }else if(splitInput.length ==2)
@@ -335,14 +388,19 @@ class ThreadedHandler implements Runnable
                         float longTemp= 0;
                         //catch here?
                         
-                        longTemp = Float.parseFloat(splitInput[0]);
-                        latTemp = Float.parseFloat(splitInput[1]);
-
-                        lockGlobals.acquire();
-                        roverLonge =longTemp;
-                        roverLat = latTemp;
-                        lockGlobals.release();
-                    }else 
+                        //roverLonge = Float.parseFloat(splitInput[0]);
+                        //roverLat = Float.parseFloat(splitInput[1]);
+                       // lockGlobals.acquire();
+                       // roverLonge =longTemp;
+                       // roverLat = latTemp;
+                       // lockGlobals.release();
+                    	System.out.println("sending waypoints");
+			sendWaypointPath(out);
+			while(true){
+				Thread.sleep(500);
+				requestRoverLocation(out);
+			}
+		    }else 
                     {
                         //Error
                         throw new Exception("Error, split of rover input wasn't 1 or 2");
@@ -354,8 +412,8 @@ class ThreadedHandler implements Runnable
             //check request criteria here and send to client
         }
         catch (Exception e) {
-            System.out.println(e.toString());
-            out.println(e.toString());
+            e.printStackTrace();
+	    out.println(e.toString());
         }
         finally
         {
@@ -371,28 +429,28 @@ class ThreadedHandler implements Runnable
         Connection conn=null;
         try
         { 
-            JSONObject roverCoordinates = new JSONObject();
-            lockGlobals.acquire();
-            roverCoordinates.put("longe", roverLonge);
-            roverCoordinates.put("lat", roverLat);
-
-            if (atLocation ==1)
-            {
-                roverCoordinates.put("atLocation", 1);
-                atLocation = 0;
-
-            } else {
-                roverCoordinates.put("atLocation", 0);
-
-            }
-
-            lockGlobals.release();
-            out.println(roverCoordinates.toJSONString());
+            
+            StringBuilder message = new StringBuilder();
+          //  lockGlobals.acquire();
+            
+		message.append('@');
+		message.append(1);
+                    message.append('{');
+                    message.append(Double.toString(roverLonge));
+                    message.append(',');
+     		message.append(Double.toString(roverLat));
+                    message.append('}');
+                message.append('}'); 
+		out.println(message);
+	//	System.out.println("roverLonge:" + roverLonge +" roverLat:"+roverLat);
+            //lockGlobals.release();
             //check request criteria here and send to client
-        }
+        	System.out.println(message);
+	}
         catch (Exception e) {
             System.out.println(e.toString());
             out.println(e.toString());
+	    e.printStackTrace();
         }
         finally
         {
@@ -403,7 +461,58 @@ class ThreadedHandler implements Runnable
             }
         }
     }
+void updateRoverLocation( Scanner in) {
+        Connection conn=null;
+	JSONObject jsonObject = new JSONObject();
+        String request;
+	try
+       {
+       while (in.hasNextLine()){
+                request=in.nextLine();
+                request= request.replace('[', '{');
+                request= request.replace(']', '}');
+              //  System.out.println("request = "+request);
+                Object obj = null;
+                JSONParser parser = new JSONParser();
+                try{
+                    obj = parser.parse(request);
+                }catch(Exception e)
+                {
+                }
+                
+                //get the command from the JSON object 
+                jsonObject = (JSONObject) obj;
+            
 
+		if (jsonObject != null){
+           	 
+                //System.out.println(jsonObject.toJSONString()); 
+	    
+	    roverLat= Double.parseDouble((String) jsonObject.get("lat"));
+            roverLonge = -Double.parseDouble((String) jsonObject.get("longe")); 
+            //roverCoordinates.put("longe", roverLonge);
+            //roverCoordinates.put("lat", roverLat);
+            }
+	}
+
+            
+            //out.println(roverCoordinates.toJSONString());
+
+        }
+        catch (Exception e) {
+            System.out.println(e.toString());
+       	    e.printStackTrace();
+       }
+        finally
+        {
+            try {
+                if (conn!=null) conn.close();
+            }
+            catch (Exception e) {
+            }
+        
+    }
+}
     void requestDelivery(JSONObject obj, PrintWriter out) {
         Connection conn=null;
         
@@ -413,34 +522,38 @@ class ThreadedHandler implements Runnable
             JSONObject roverCoordinates = new JSONObject();
 
             System.out.println("checking for available rover");
-            if (availableRover.availablePermits() == 0)
+          /* if (availableRover.availablePermits() == 0)
             {
                 System.out.println("no available rover");
                 roverCoordinates.put("success", 0);
                 out.println("Error, no available delivery rover");
                 //return;
                 throw new Exception("No available rover");
-            }
-            availableRover.acquire();
+            }*/
+	
+            
+	    
             System.out.println("rover designated for delivery");
-            lockGlobals.acquire();
-            msgLat = Float.parseFloat((String) obj.get("lat"));
-            msgLonge = Float.parseFloat((String) obj.get("longe"));
-            lockGlobals.release();
+            //lockGlobals.acquire();
+            msgLat = Double.parseDouble((String) obj.get("lat"));
+            msgLonge = -Double.parseDouble((String) obj.get("longe")); 
+	    //lockGlobals.release();
             roverCoordinates.put("success", 1);
             //roverCoordinates.put("longe", roverLonge);
             //roverCoordinates.put("lat", roverLat);
             
+            availableRequest.release(); //increment semaphore count, available request
+	 //   availableRover.acquire();
 
 
             
-            availableRequest.release(); //increment semaphore count, available request
-            out.println(roverCoordinates.toJSONString());
+            //out.println(roverCoordinates.toJSONString());
 
         }
         catch (Exception e) {
             System.out.println(e.toString());
             out.println(e.toString());
+	    e.printStackTrace();
         }
         finally
         {
@@ -488,7 +601,7 @@ class ThreadedHandler implements Runnable
             System.out.println(e.toString());
             out.println(e.toString());
         }
-        finally
+     finally
         {
             try {
                 if (conn!=null) conn.close();
@@ -537,7 +650,7 @@ class ThreadedHandler implements Runnable
             conn = getConnection();
             
             Statement q1 = conn.createStatement();
-            ResultSet r1 = q1.executeQuery("select ifnull(max(id), 1)+1 from waypoints");
+            ResultSet r1 = q1.executeQuery("select ifnull(max(id), -1)+1 from waypoints");
             while(r1.next()) {
                 eventId = r1.getString(1);
                 if (eventId==null){ eventId = "1";}
@@ -606,7 +719,15 @@ class ThreadedHandler implements Runnable
         String request = "fail";
         
         int requestInt;
-        
+/*	while (true){
+	out.println("HELLO");
+	for (int i = 0; i < 1000000; i++);
+	}*/
+     /*  while(in.hasNext()){
+       System.out.print(in.next());
+       out.print('c');
+       }*/
+       
         if(in.hasNextLine()){
             request=in.nextLine();
             requestInt=Integer.parseInt(request);
@@ -649,7 +770,8 @@ class ThreadedHandler implements Runnable
                 roverOnline(in,out);
             }else if(requestInt == 3){
                 //3, rover comes on line
-            }else if(requestInt == 4){
+            	sendWaypointPath(out);
+	    }else if(requestInt == 4){
                 //4, database requests delivery
             }else if(requestInt == 5){
                 //5, rover at destination
@@ -668,8 +790,10 @@ class ThreadedHandler implements Runnable
             }else if(requestInt == 14){
                 addWaypoint(jsonObject,out);
             }else if(requestInt == 15){
-                //getRoverLocation(out);
-            }else {
+                requestRoverLocation(out);
+            }else if (requestInt == 20){
+	    	updateRoverLocation(in);
+	    }else {
                 //invalid communication
                 System.out.println("ERROR, INVALID REQUEST");
             }
